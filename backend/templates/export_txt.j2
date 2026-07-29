@@ -1,0 +1,257 @@
+================================================================================
+DOCUMENT TRANSCRIPTION EXPORT
+================================================================================
+
+Image File: {{ metadata.image_filename }}
+Schema Version: {{ schema_version }}
+Created At: {{ metadata.created_at }}
+App Version: {{ metadata.app_version }}
+License: {{ metadata.license }}
+
+Citation:
+{{ metadata.citation }}
+
+================================================================================
+SHARED CONTEXT
+================================================================================
+
+Profile Name:
+{{ shared_context.profile_name }}
+
+Domain Knowledge:
+{{ shared_context.domain_knowledge | default("[none]", true) }}
+
+User / Project Notes:
+{{ shared_context.notes | default("[none]", true) }}
+
+================================================================================
+SUMMARY
+================================================================================
+
+{{ outputs.summary.text | default("[No summary generated.]", true) }}
+
+================================================================================
+HARMONIZED TRANSCRIPTION
+================================================================================
+
+{{ outputs.harmonization.text | default("[No harmonized transcription generated.]", true) }}
+
+================================================================================
+TRANSCRIPTION VARIANTS
+================================================================================
+
+Transcription Model:
+Provider: {{ outputs.transcriptions.llm_metadata.provider }}
+Model: {{ outputs.transcriptions.llm_metadata.model }}
+Timestamp: {{ outputs.transcriptions.llm_metadata.timestamp }}
+Temperature: {{ outputs.transcriptions.llm_metadata.temperature }}
+Tokens In: {{ outputs.transcriptions.llm_metadata.tokens_in }}
+Tokens Out: {{ outputs.transcriptions.llm_metadata.tokens_out }}
+Thinking Tokens: {{ outputs.transcriptions.llm_metadata.tokens_think }}
+
+System Prompt:
+{{ outputs.transcriptions.llm_metadata.system_prompt }}
+
+Task Prompt:
+{{ outputs.transcriptions.llm_metadata.task_prompt | default("[none]", true) }}
+
+{% for item in outputs.transcriptions['items'] %}
+--------------------------------------------------------------------------------
+Variant {{ loop.index }}
+--------------------------------------------------------------------------------
+
+{{ item }}
+
+{% else %}
+[No transcription variants generated.]
+
+{% endfor %}
+================================================================================
+NAMED ENTITIES
+================================================================================
+
+Entity Extraction Model:
+Provider: {{ outputs.named_entities.llm_metadata.provider }}
+Model: {{ outputs.named_entities.llm_metadata.model }}
+Timestamp: {{ outputs.named_entities.llm_metadata.timestamp }}
+Temperature: {{ outputs.named_entities.llm_metadata.temperature }}
+Tokens In: {{ outputs.named_entities.llm_metadata.tokens_in }}
+Tokens Out: {{ outputs.named_entities.llm_metadata.tokens_out }}
+Thinking Tokens: {{ outputs.named_entities.llm_metadata.tokens_think }}
+Pass 2 Used: {{ outputs.named_entities.pass2_used }}
+
+{% for entity in outputs.named_entities['items'] %}
+--------------------------------------------------------------------------------
+Entity: {{ entity.entity_id }}
+--------------------------------------------------------------------------------
+
+Canonical Name:
+{{ entity.canonical }}
+
+Type:
+{{ entity.type }}
+
+Observed Variants:
+{{ entity.observed_variants | default([], true) | join(", ") }}
+
+Confidence:
+{{ entity.confidence }}
+
+Role in Document:
+{{ entity.role_in_document }}
+
+About:
+{{ entity.about }}
+
+Disambiguation:
+{{ entity.disambiguation }}
+
+Resolution Notes:
+{{ entity.resolution_notes }}
+
+{% else %}
+[No named entities extracted.]
+
+{% endfor %}
+================================================================================
+ENTITY INDEX BY TYPE
+================================================================================
+
+People
+------
+{% for entity in outputs.named_entities['items'] if entity.type == "person" %}
+- {{ entity.canonical }} ({{ entity.entity_id }})
+{% else %}
+[None found]
+{% endfor %}
+
+Places
+------
+{% for entity in outputs.named_entities['items'] if entity.type == "place" %}
+- {{ entity.canonical }} ({{ entity.entity_id }})
+{% else %}
+[None found]
+{% endfor %}
+
+Organizations
+-------------
+{% for entity in outputs.named_entities['items'] if entity.type == "organization" %}
+- {{ entity.canonical }} ({{ entity.entity_id }})
+{% else %}
+[None found]
+{% endfor %}
+
+Dates
+-----
+{% for entity in outputs.named_entities['items'] if entity.type == "date" %}
+- {{ entity.canonical }} ({{ entity.entity_id }})
+{% else %}
+[None found]
+{% endfor %}
+
+Events / Other
+--------------
+{% for entity in outputs.named_entities['items'] if entity.type not in ["person", "place", "organization", "date"] %}
+- {{ entity.canonical }} ({{ entity.entity_id }})
+{% else %}
+[None found]
+{% endfor %}
+
+================================================================================
+GROUNDING INFORMATION
+================================================================================
+
+{% set grounding = outputs.named_entities.grounding_info or {} %}
+Web Search Queries
+------------------
+{% for query in grounding.get("web_search_queries", []) %}
+- {{ query }}
+{% else %}
+[None]
+{% endfor %}
+
+Sources
+-------
+{% for source in grounding.get("sources", []) %}
+{{ source.chunk_index }}. {{ source.title | default("[untitled]", true) }}
+URI: {{ source.uri | default("[no URI]", true) }}
+
+{% else %}
+[No sources.]
+
+{% endfor %}
+================================================================================
+PROCESSING METADATA
+================================================================================
+
+SUMMARY GENERATION
+------------------
+
+Timestamp: {{ outputs.summary.llm_metadata.timestamp }}
+Provider: {{ outputs.summary.llm_metadata.provider }}
+Model: {{ outputs.summary.llm_metadata.model }}
+Temperature: {{ outputs.summary.llm_metadata.temperature }}
+Tokens In: {{ outputs.summary.llm_metadata.tokens_in }}
+Tokens Out: {{ outputs.summary.llm_metadata.tokens_out }}
+Thinking Tokens: {{ outputs.summary.llm_metadata.tokens_think }}
+
+System Prompt:
+{{ outputs.summary.llm_metadata.system_prompt }}
+
+Task Prompt:
+{{ outputs.summary.llm_metadata.task_prompt | default("[none]", true) }}
+
+HARMONIZATION
+-------------
+
+Timestamp: {{ outputs.harmonization.llm_metadata.timestamp }}
+Provider: {{ outputs.harmonization.llm_metadata.provider }}
+Model: {{ outputs.harmonization.llm_metadata.model }}
+Temperature: {{ outputs.harmonization.llm_metadata.temperature }}
+Tokens In: {{ outputs.harmonization.llm_metadata.tokens_in }}
+Tokens Out: {{ outputs.harmonization.llm_metadata.tokens_out }}
+Thinking Tokens: {{ outputs.harmonization.llm_metadata.tokens_think }}
+
+System Prompt:
+{{ outputs.harmonization.llm_metadata.system_prompt }}
+
+Task Prompt:
+{{ outputs.harmonization.llm_metadata.task_prompt | default("[none]", true) }}
+
+TRANSCRIPTION
+-------------
+
+Timestamp: {{ outputs.transcriptions.llm_metadata.timestamp }}
+Provider: {{ outputs.transcriptions.llm_metadata.provider }}
+Model: {{ outputs.transcriptions.llm_metadata.model }}
+Temperature: {{ outputs.transcriptions.llm_metadata.temperature }}
+Tokens In: {{ outputs.transcriptions.llm_metadata.tokens_in }}
+Tokens Out: {{ outputs.transcriptions.llm_metadata.tokens_out }}
+Thinking Tokens: {{ outputs.transcriptions.llm_metadata.tokens_think }}
+
+System Prompt:
+{{ outputs.transcriptions.llm_metadata.system_prompt }}
+
+Task Prompt:
+{{ outputs.transcriptions.llm_metadata.task_prompt | default("[none]", true) }}
+
+NAMED ENTITY EXTRACTION
+-----------------------
+
+Timestamp: {{ outputs.named_entities.llm_metadata.timestamp }}
+Provider: {{ outputs.named_entities.llm_metadata.provider }}
+Model: {{ outputs.named_entities.llm_metadata.model }}
+Temperature: {{ outputs.named_entities.llm_metadata.temperature }}
+Tokens In: {{ outputs.named_entities.llm_metadata.tokens_in }}
+Tokens Out: {{ outputs.named_entities.llm_metadata.tokens_out }}
+Thinking Tokens: {{ outputs.named_entities.llm_metadata.tokens_think }}
+
+System Prompt:
+{{ outputs.named_entities.llm_metadata.system_prompt }}
+
+Task Prompt:
+{{ outputs.named_entities.llm_metadata.task_prompt | default("[none]", true) }}
+
+================================================================================
+END OF EXPORT
+================================================================================

@@ -1,0 +1,81 @@
+# Secrets — never commit real credentials. Use .env.example as the template.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Packaging / distribution
+*.zip
+*.egg-info/
+dist/
+build/
+
+# Runtime artifacts
+logs/
+tmp/
+*.log
+*.wav
+
+# Model registry (regenerated from API on first run)
+model_registry.json
+
+# Jupyter
+.ipynb_checkpoints/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code internal worktrees (contain machine-specific absolute paths)
+.claude/worktrees/
+# Machine-local Claude Code settings (contain absolute paths)
+.claude/settings.local.json
+
+# LaTeX build byproducts (paper sources live outside this repo)
+*.aux
+*.bbl
+*.blg
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Paper working directories — not part of the software release
+/_GCH 2026/
+/_JCDL 2026/
+
+# Sample manuscript images and the notebooks that consume them.
+#
+# Sample-Data/ holds scanned manuscript pages whose redistribution rights could
+# not be confirmed, so they are not published with the software. notebooks/
+# hardcodes paths into Sample-Data/ and would not run without it. Both stay on
+# developer machines; neither is part of the release.
+/Sample-Data/
+/notebooks/
+
+# Personal scratch notes
+/RemainingFixes.txt
+/StartServers.txt
+
+# NOTE: backend/profiles/ and entity-data/ are deliberately TRACKED — the
+# application reads both at runtime. backend/core/config.py points PROFILES_DIR
+# at backend/profiles/, and backend/engines/ner_engine.py loads
+# entity-data/entity_schema_v2.json. A clone missing either one has no
+# transcription prompts or no NER schema, so do not add them here.

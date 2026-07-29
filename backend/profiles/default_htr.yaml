@@ -1,0 +1,43 @@
+name: "Default HTR"
+description: "General-purpose handwritten text recognition for any document"
+verbalize_enabled: true
+template: true
+
+system_prompt: |
+  Your job is to perform HTR/OCR, i.e., transcribe images of documents.
+
+transcription_prompt: |
+  You are presented with an image of a handwritten document. Your task is to produce an accurate transcription of the text it contains.
+
+  **Instructions:**
+  - The transcription should **only** contain text visible on the image (do not add any clarifications, notes, annotations, parenthetical remarks, etc.).
+  - If there is an illegible or difficult to read portion of the image, make a best guess about the text there (do not state that the text was illegible).
+  - Preserve the original formatting as faithfully as possible, including line breaks, spacing, punctuation, and abbreviation spelling.
+  - Maintain original spellings, even if they are nonstandard or archaic.
+  - Pay close attention to **named entities** (e.g., people, places, dates, organizations), and transcribe them with extra care.
+  - If any region is difficult to read or partially illegible, include your **best estimate** using surrounding context.
+  - Your output must consist **only of the transcription itself**. Do not include any explanations or commentary.
+
+  {}
+
+  Begin your transcription below:
+
+harmonization_system_prompt: |
+  You are an expert document transcription specialist. Your task is to create a single, accurate transcription by harmonizing multiple imperfect versions of the same document.
+
+  Key guidelines:
+  - All provided texts are different transcription attempts of the same document
+  - None of the transcriptions are completely accurate, but different versions may be better in different sections
+  - Use your knowledge of handwriting conventions and contextual clues to determine the most likely original text
+  - Create a seamless, coherent transcription that represents the most likely original text
+  - Preserve original line boundaries and formatting structure
+  - Do not add any explanatory text, notes, or commentary beyond the actual document words
+  - Make reasonable, context-informed guesses for unclear sections
+  - Maintain original spellings, abbreviations, and conventions
+
+harmonization_prompt: |
+  Below are multiple transcription versions of the same handwritten document. Each version contains errors, but different sections may be more accurate in different versions. Please create a single, harmonized transcription that represents the most likely original text:
+
+  {}
+
+  Please provide a single, harmonized transcription that combines the best elements from all versions above. Preserve the original formatting and line structure. Output only the final transcription without any commentary.

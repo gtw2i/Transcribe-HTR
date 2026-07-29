@@ -1,0 +1,43 @@
+# Transkrybe.ai — backend runtime dependencies.
+#
+# This is THE runtime requirements file for the application. The React frontend
+# is built separately with `npm ci && npm run build` (see frontend/package.json).
+
+# Web framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9   # required by File()/UploadFile in routers/session.py
+itsdangerous>=2.1.0       # required by starlette SessionMiddleware
+starlette>=0.36.0         # imported directly in main.py (not just via fastapi)
+pydantic>=2.0.0           # imported directly across schemas/ and routers/
+
+# AI APIs
+google-genai>=1.0.0
+openai>=1.0.0
+anthropic>=0.109.0
+
+# Image processing
+pillow>=8.0.0
+
+# Data / utilities
+pyyaml>=6.0
+python-slugify>=8.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+tqdm>=4.64.0
+rapidfuzz>=3.6        # edit-distance backend for consistency analysis (analysis/metrics.py)
+
+# Templating (text export format)
+jinja2>=3.1.0
+python-docx>=1.2.0  # DOCX export format
+
+# NLP (optional — set SPACY_ENABLED=false to skip loading, saves ~500MB RAM)
+spacy>=3.4.0
+
+# ── Optional extras ──────────────────────────────────────────────────────────
+# soundfile is imported (guarded) by core/audio_utils.py for richer audio
+# metadata. Without it the module falls back to the stdlib `wave` module. It is
+# deliberately NOT installed by default: it only serves text-to-speech, which is
+# hard-disabled in the UI (frontend/src/featureFlags.js TTS_UI_ENABLED = false).
+# Install it with `pip install ".[audio]"` (see pyproject.toml) if you enable TTS.
+#   soundfile>=0.12.0

@@ -1,0 +1,86 @@
+name: Greek Papyrus HTR
+description: Optimized for Greek Papyrus
+verbalize_enabled: true
+system_prompt: 'Your job is to perform HTR/OCR, i.e., transcribe images of documents.
+
+  '
+transcription_prompt: 'You are presented with an image of an ancient Greek papyrus.
+  Your task is to produce an accurate diplomatic transcription of the Greek text it
+  contains.
+
+
+  **Instructions:**
+
+  - The transcription should **only** contain text visible on the image (do not add
+  any clarifications, notes, translations, commentary, brackets, or editorial symbols
+  unless they are physically present on the papyrus).
+
+  - Reproduce the Greek text exactly as written, preserving original spelling, orthography,
+  and letter forms as closely as possible.
+
+  - Maintain the original layout faithfully, including line breaks, spacing, paragraph
+  divisions, marginal text, and any visible indentation.
+
+  - If the papyrus contains diacritics, accents, breathings, nomina sacra, ligatures,
+  supralinear strokes, or abbreviations, reproduce them exactly as they appear.
+
+  - If a portion of the text is damaged, faded, or partially illegible, make your
+  best reconstruction based solely on visible traces and context, without indicating
+  uncertainty.
+
+  - Preserve line numbering only if it is visible in the image.
+
+  - Do not normalize spelling, expand abbreviations, or modernize the text.
+
+  - Do not translate the text.
+
+
+  Your output must consist **only** of the transcription itself, matching the visual
+  structure of the papyrus as closely as possible.
+
+
+  {}
+
+
+  Begin your transcription below:'
+harmonization_system_prompt: "You are an expert ancient manuscript transcription specialist\
+  \ with deep knowledge of Greek papyrology, paleography, and scribal conventions.\
+  \ Your task is to create a single, accurate diplomatic transcription by harmonizing\
+  \ multiple imperfect transcriptions of the same ancient Greek papyrus.\n\nKey guidelines:\n\
+  - All provided texts are different transcription attempts of the same ancient Greek\
+  \ document  \n- None of the transcriptions are completely accurate, but different\
+  \ versions may be more accurate in different sections  \n- Use your knowledge of\
+  \ ancient Greek language, orthography, grammar, papyrological conventions, common\
+  \ formulaic expressions, and scribal practices  \n- Create a seamless, coherent\
+  \ diplomatic transcription that represents the most likely original text as it appeared\
+  \ on the papyrus  \n- Preserve original line boundaries and overall formatting structure\
+  \ as closely as possible  \n- Do not add any explanatory text, notes, editorial\
+  \ brackets, restorations in brackets, commentary, or apparatus  \n- Make reasonable,\
+  \ historically informed reconstructions for unclear or damaged sections, but do\
+  \ not indicate uncertainty  \n- Maintain original spelling, including itacisms,\
+  \ nonstandard orthography, abbreviations, nomina sacra, supralinear strokes, and\
+  \ other scribal features  \n- Do not normalize the Greek or expand abbreviations\
+  \  \n- Do not translate the text  \n\nYour output must consist only of the reconstructed\
+  \ transcription itself."
+harmonization_prompt: |
+  Below are multiple transcription versions of the same ancient Greek papyrus. Each version contains errors, but different sections may be more accurate in different versions. Please create a single, harmonized diplomatic transcription that represents the most likely original text as it appeared on the papyrus:
+
+  Key requirements:
+
+  - Produce a single continuous transcription.
+
+  - Preserve original line breaks and layout structure as closely as possible.
+
+  - Do not include commentary, apparatus, brackets, or explanatory notes.
+
+  - Do not normalize spelling or expand abbreviations.
+
+  - Maintain all visible orthographic and scribal features.
+
+  - Make historically and philologically informed reconstructions where necessary, but do not indicate uncertainty.
+
+  - Output only the reconstructed Greek text.
+
+  {}
+
+  Please provide a single, harmonized diplomatic transcription that combines the most accurate readings from all versions above. Focus on philological accuracy and period-appropriate Greek language and scribal conventions. Preserve the original formatting, line boundaries, and layout structure as closely as possible. Output only the final reconstructed transcription without any commentary, apparatus, or editorial notation.

@@ -1,0 +1,87 @@
+# Pre-commit hooks configuration for Transkrybe.ai
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+repos:
+  # General code quality hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        description: Trims trailing whitespace
+      - id: end-of-file-fixer
+        description: Ensures files end with a newline
+      - id: check-yaml
+        description: Checks yaml files for parseable syntax
+      - id: check-json
+        description: Checks json files for parseable syntax
+      - id: check-added-large-files
+        description: Prevents giant files from being committed
+      - id: check-merge-conflict
+        description: Checks for files that contain merge conflict strings
+      - id: debug-statements
+        description: Checks for debugger imports and py37+ `breakpoint()` calls
+      # requirements-txt-fixer is deliberately NOT enabled: the requirements
+      # files are grouped into commented sections (web framework, AI APIs,
+      # optional extras) and alphabetical sorting destroys that structure.
+
+  # Notebook output stripping — keeps credentials, local paths, and stale
+  # results out of any notebook that gets committed. No notebooks ship with the
+  # release, so this is a guard against a stray one: cell outputs readily carry
+  # API-key prefixes and absolute developer paths.
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+      - id: nbstripout
+        description: Strips outputs and execution counts from Jupyter notebooks
+
+  # Python code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 25.9.0
+    hooks:
+      - id: black
+        description: "Black: The uncompromising Python code formatter"
+        language_version: python3
+        args: [--line-length=88]
+
+  # Python linting with flake8 (disabled for large existing codebase)
+  # - repo: https://github.com/pycqa/flake8
+  #   rev: 7.1.1
+  #   hooks:
+  #     - id: flake8
+  #       description: "Flake8: Your tool for style guide enforcement"
+  #       additional_dependencies: [flake8-docstrings]
+  #       args: [
+  #         "--max-line-length=88",
+  #         "--extend-ignore=E203,W503,E501,F401"
+  #       ]
+
+  # Import sorting with isort (compatible with Black)
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        description: "isort: A Python utility to sort imports"
+        args: [--profile=black, --line-length=88]
+
+  # Security checks with bandit (disabled on Windows due to Unicode issues)
+  # - repo: https://github.com/pycqa/bandit
+  #   rev: 1.7.9
+  #   hooks:
+  #     - id: bandit
+  #       description: "Bandit: A tool for finding common security issues in Python"
+  #       args: ["--skip=B101,B601", "--quiet"]  # Skip assert_used and shell injection, quiet output
+  #       exclude: ^tests/
+
+# Configuration for specific tools
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

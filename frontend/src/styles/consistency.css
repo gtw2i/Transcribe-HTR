@@ -1,0 +1,389 @@
+/* Consistency analysis tab — heat map, statistics, diff viewer. */
+
+.consistency-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.consistency-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.consistency-section > h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+  color: var(--color-heading);
+}
+
+.consistency-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+/* ── Headline statistics ─────────────────────────────────────────────────── */
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.stat-block {
+  min-width: 220px;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-heading);
+  line-height: 1.1;
+}
+
+.stat-detail {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ── Heat map ────────────────────────────────────────────────────────────── */
+
+.heatmap {
+  margin: 0;
+}
+
+.heatmap-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-heading);
+  margin-bottom: var(--space-2);
+}
+
+.heatmap-grid {
+  display: grid;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.heatmap-corner {
+  min-width: 72px;
+}
+
+.heatmap-head {
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: var(--radius-sm);
+}
+
+.heatmap-head:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.heatmap-head.is-focused {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.heatmap-head-row {
+  text-align: right;
+  min-width: 72px;
+}
+
+.heatmap-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  transition: opacity 0.15s ease;
+}
+
+.heatmap-cell.is-diagonal {
+  background: var(--color-secondary);
+  color: var(--color-text-muted);
+}
+
+.heatmap-cell.is-offscale {
+  background: repeating-linear-gradient(
+    45deg,
+    #7b2d8e,
+    #7b2d8e 5px,
+    #642475 5px,
+    #642475 10px
+  );
+  color: #fff;
+  font-weight: 700;
+}
+
+.heatmap-cell.is-dimmed {
+  opacity: 0.28;
+}
+
+.heatmap-cell.is-focused {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.heatmap-scale {
+  display: inline-block;
+  width: 120px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to right, rgba(255, 75, 75, 0.08), rgba(255, 75, 75, 0.9));
+  border: 1px solid var(--color-border);
+}
+
+.heatmap-scale-labels {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.heatmap-swatch-offscale {
+  display: inline-block;
+  width: 12px;
+  height: 10px;
+  vertical-align: middle;
+  margin-right: 4px;
+  background: repeating-linear-gradient(45deg, #7b2d8e, #7b2d8e 3px, #642475 3px, #642475 6px);
+  border-radius: 2px;
+}
+
+.heatmap-caption {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
+}
+
+.heatmap-pair {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.heatmap-pair > * {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+/* ── Attempt selection ───────────────────────────────────────────────────── */
+
+.attempt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.attempt-row:last-child {
+  border-bottom: none;
+}
+
+.attempt-row.is-focused {
+  background: var(--color-primary-light);
+}
+
+.attempt-row.is-unavailable {
+  opacity: 0.7;
+}
+
+.attempt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.attempt-label {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-ok { background: var(--color-success-bg); color: #0f7a35; }
+.badge-warn { background: var(--color-warning-bg); color: #8a5f00; }
+.badge-error { background: var(--color-error-bg); color: #8a2020; }
+.badge-muted { background: var(--color-secondary); color: var(--color-text-muted); }
+.badge-info { background: var(--color-info-bg); color: #10508c; }
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+
+.consistency-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.consistency-table th,
+.consistency-table td {
+  padding: var(--space-2);
+  text-align: right;
+  border-bottom: 1px solid var(--color-border-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.consistency-table th:first-child,
+.consistency-table td:first-child {
+  text-align: left;
+  font-variant-numeric: normal;
+}
+
+.consistency-table th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.consistency-table th.is-sorted {
+  color: var(--color-primary);
+}
+
+.consistency-table tr.is-focused td {
+  background: var(--color-primary-light);
+}
+
+.consistency-table tbody tr:hover td {
+  background: var(--color-surface-hover);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* ── Consensus ───────────────────────────────────────────────────────────── */
+
+.consensus-kinds {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.consensus-text {
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.consensus-token-low {
+  background: var(--color-warning-bg);
+  border-bottom: 2px solid var(--color-warning);
+}
+
+/* ── Diff viewer ─────────────────────────────────────────────────────────── */
+
+.diff-text {
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  line-height: 1.9;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.diff-seg-equal { color: var(--color-text); }
+
+.diff-seg-replace {
+  background: var(--color-warning-bg);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.diff-seg-delete {
+  background: #fde2e2;
+  color: #8a2020;
+  text-decoration: line-through;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.diff-seg-insert {
+  background: var(--color-success-bg);
+  color: #0f7a35;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.diff-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+/* ── Full-set vs filtered (§21) ──────────────────────────────────────────── */
+
+.comparison-columns {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.comparison-columns > div {
+  flex: 1 1 260px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.comparison-columns h4 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}

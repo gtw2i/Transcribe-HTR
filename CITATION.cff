@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+message: "If you use this software in academic work, please cite it as below."
+type: software
+title: "Transkrybe.ai: LLM-assisted handwritten text recognition and analysis for historical manuscripts"
+abstract: >-
+  A web application for transcribing handwritten historical documents with
+  vision-capable large language models from OpenAI, Google, and Anthropic.
+  Supports multi-model transcription, character- and word-error-rate
+  consistency analysis, consensus reconciliation, named-entity recognition,
+  and export to JSON, plain text, and DOCX.
+authors:
+  - family-names: West
+    given-names: Graham
+  - family-names: Wallin
+    given-names: John
+    name-particle: F.
+version: "2.0.0"
+date-released: 2026-07-29
+license: BSD-2-Clause
+repository-code: "https://github.com/gtw2i/Transcribe-HTR"
+keywords:
+  - historical document transcription
+  - handwritten text recognition
+  - AI vision models
+  - manuscript analysis
+  - digital humanities
+preferred-citation:
+  type: conference-paper
+  title: "An Application for LLM-Powered Document Transcription with Interactive Tools for Textual Analysis"
+  year: 2025
+  collection-title: "Past Meets Future 2025 Workshop"
+  authors:
+    - family-names: West
+      given-names: Graham
+    - family-names: Wallin
+      given-names: John
+      name-particle: F.
+    - family-names: Fialka
+      given-names: A.
+    - family-names: Swindall
+      given-names: M. I.
+    - family-names: Dyson
+      given-names: J.
+    - family-names: Sherridan
+      given-names: R.
+    - family-names: Brusuelas
+      given-names: J. H.

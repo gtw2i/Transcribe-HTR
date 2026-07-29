@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt', 'requirements-dev.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Application runtime (FastAPI + engines) — required by tests/test_api
+        # and anything importing backend/core/export_utils.py.
+        pip install -r backend/requirements.txt
+        # Test tooling, incl. httpx for fastapi.testclient.TestClient.
+        pip install -r requirements-dev.txt
+
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+    - name: Run tests with pytest
+      run: |
+        python -m pytest tests/ -v --tb=short --cov=backend --cov-report=xml --cov-report=term-missing
+
+    - name: Upload coverage reports to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: frontend
+      run: npm ci
+
+    # Non-blocking: eslint-plugin-react-hooks v7 added stricter rules
+    # (react-hooks/set-state-in-effect and friends) that the existing
+    # components do not yet satisfy. Reported for visibility; fixing them is
+    # tracked separately. The build below IS gating.
+    - name: Lint
+      working-directory: frontend
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Build
+      working-directory: frontend
+      run: npm run build
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install pre-commit
+      run: |
+        python -m pip install --upgrade pip
+        pip install pre-commit
+
+    - name: Cache pre-commit
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pre-commit
+        key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pre-commit-
+
+    # Non-blocking: the codebase predates enforced black/isort formatting, so
+    # this reports style drift without failing the build. Formatting is not
+    # correctness — the test, frontend, and import-check jobs are the gates.
+    # To adopt it for real: run `black --line-length=88 backend tests notebooks`
+    # and `isort --profile=black --line-length=88 backend tests notebooks`,
+    # confirm `python -m pytest` is still green, then delete continue-on-error.
+    - name: Run pre-commit
+      run: pre-commit run --all-files --show-diff-on-failure
+      continue-on-error: true
+
+  import-check:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+
+    - name: Check the FastAPI app imports cleanly
+      working-directory: backend
+      run: python -c "import main; print(main.app.title)"
+
+    - name: Check backend modules compile
+      run: |
+        python -m compileall -q backend

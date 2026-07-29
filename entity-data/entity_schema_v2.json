@@ -1,0 +1,87 @@
+{
+  "type": "OBJECT",
+  "description": "Pass 1 grounded entity research bundle. Designed to preserve provenance, ambiguity, and evidence for structured normalization in Pass 2.",
+  "properties": {
+
+    "entities": {
+      "type": "ARRAY",
+      "description": "Entity candidates extracted across transcription variants. May include unresolved or ambiguous items.",
+      "items": {
+
+        "type": "OBJECT",
+        "description": "A single entity record derived from grounded research in Pass 1.",
+        "properties": {
+
+          "canonical": {
+            "type": "STRING",
+            "description": "Best-supported standardized name. If unresolved, use the format 'Unresolved: <best guess>'."
+          },
+
+          "type": {
+            "type": "STRING",
+            "description": "Entity classification category.",
+            "enum": [
+              "person",
+              "organization",
+              "place",
+              "date",
+              "other"
+            ]
+          },
+
+          "observed_variants": {
+            "type": "ARRAY",
+            "description": "All observed spellings, abbreviations, or partial forms of the entity across transcription variants.",
+            "items": {
+              "type": "STRING",
+              "description": "A single observed textual variant with verbatim spelling preserved."
+            }
+          },
+
+          "about": {
+            "type": "STRING",
+            "description": "Brief background information explaining who or what the entity is and how it relates to the document."
+          },
+
+          "role_in_document": {
+            "type": "STRING",
+            "description": "The functional role this entity plays in the document (e.g., author, recipient, referenced commander, location of action)."
+          },
+
+          "disambiguation": {
+            "type": "STRING",
+            "description": "Information distinguishing this entity from similarly named entities or alternative historical candidates."
+          },
+
+          "resolution_notes": {
+            "type": "STRING",
+            "description": "Explanation of how the canonical form was chosen from observed variants and sources, including any uncertainty."
+          },
+
+          "confidence": {
+            "type": "STRING",
+            "description": "Categorical confidence level in the correctness of the canonical identification.",
+            "enum": [
+              "high",
+              "med",
+              "low"
+            ]
+          }
+
+        },
+        "required": [
+          "canonical",
+          "type",
+          "observed_variants",
+          "about",
+          "confidence"
+        ]
+
+      }
+    }
+  },
+
+  "required": [
+    "entities"
+  ]
+}
