@@ -1,6 +1,6 @@
 # tts_engine.py
 """
-Text-to-Speech Engine for Streamlit Transcribe application.
+Text-to-Speech Engine for Transcribe-HTR application.
 Handles OpenAI TTS API integration with comprehensive error handling and cost tracking.
 """
 

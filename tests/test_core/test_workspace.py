@@ -1,5 +1,5 @@
 """
-Test workspace functionality for Transkrybe.ai application.
+Test workspace functionality for Transcribe-HTR application.
 
 This module contains tests for session workspace functionality,
 including filename normalization and workspace structure validation.

@@ -1,4 +1,4 @@
-# Transkrybe.ai — frontend
+# Transcribe-HTR — frontend
 
 React 19 + Vite single-page app. It talks to the FastAPI backend documented in
 the [main README](../README.md); start that first or the app has nothing to call.

@@ -1,5 +1,5 @@
 """
-Test timing accuracy for Transkrybe.ai application.
+Test timing accuracy for Transcribe-HTR application.
 
 This module contains tests for timing capture in transcription engine
 and JSON output, including per-call timing and overall run timing.

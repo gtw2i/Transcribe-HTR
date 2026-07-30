@@ -1,4 +1,4 @@
-# Transkrybe.ai — development dependencies
+# Transcribe-HTR — development dependencies
 # Testing, formatting, and notebook tooling. Install alongside
 # backend/requirements.txt.
 

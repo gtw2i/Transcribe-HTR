@@ -2,7 +2,7 @@ export function StartTab() {
   return (
     <div className="section">
       <div className="card section">
-        <h2 style={{ marginBottom: 'var(--space-2)' }}>📝 Transkrybe.ai</h2>
+        <h2 style={{ marginBottom: 'var(--space-2)' }}>📝 Transcribe-HTR</h2>
         <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
           Transcribe handwritten documents using AI vision models (OpenAI, Google Gemini, and Anthropic Claude).
           Run multiple transcriptions, compare them with colorized difference highlighting, and merge

@@ -1,4 +1,4 @@
-# Transkrybe.ai — backend runtime dependencies.
+# Transcribe-HTR — backend runtime dependencies.
 #
 # This is THE runtime requirements file for the application. The React frontend
 # is built separately with `npm ci && npm run build` (see frontend/package.json).

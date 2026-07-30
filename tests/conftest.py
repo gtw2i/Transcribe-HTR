@@ -32,7 +32,7 @@ TEST_SAMPLE_TRANSCRIPTIONS = [
 @pytest.fixture(scope="session")
 def temp_workspace():
     """Create a temporary workspace directory for testing."""
-    temp_dir = tempfile.mkdtemp(prefix="transkrybe_test_")
+    temp_dir = tempfile.mkdtemp(prefix="transcribe_htr_test_")
     workspace_path = Path(temp_dir)
 
     # Create standard directory structure

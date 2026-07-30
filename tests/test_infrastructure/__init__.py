@@ -1,1 +1,1 @@
-"""Infrastructure and utility tests for Transkrybe.ai application."""
+"""Infrastructure and utility tests for Transcribe-HTR application."""

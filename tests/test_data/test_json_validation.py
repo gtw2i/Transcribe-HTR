@@ -1,5 +1,5 @@
 """
-Test JSON validation for Transkrybe.ai application.
+Test JSON validation for Transcribe-HTR application.
 
 This module contains tests for JSON output validation,
 including individual token data per transcription and schema validation.

@@ -1,5 +1,5 @@
 """
-Test backward compatibility for Transkrybe.ai application.
+Test backward compatibility for Transcribe-HTR application.
 
 This module contains tests for backward compatibility with existing JSON files
 and mixed output formats (old text-only vs new detailed objects).

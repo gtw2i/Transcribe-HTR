@@ -1,6 +1,6 @@
 # audio_utils.py
 """
-Audio utilities for Streamlit Transcribe TTS functionality.
+Audio utilities for Transcribe-HTR TTS functionality.
 Handles audio file operations, duration calculation, format validation, and player integration.
 """
 

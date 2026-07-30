@@ -1,5 +1,5 @@
 """
-Test file index functionality for Transkrybe.ai application.
+Test file index functionality for Transcribe-HTR application.
 
 This module contains tests for FileIndex functionality,
 including file record management, indexing, and file operations.

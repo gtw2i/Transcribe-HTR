@@ -1,1 +1,1 @@
-"""API functionality tests for Transkrybe.ai application."""
+"""API functionality tests for Transcribe-HTR application."""

@@ -1,5 +1,5 @@
 [project]
-name = "transkrybe-ai"
+name = "transcribe-htr"
 version = "2.0.0"
 description = "LLM-assisted handwritten text recognition and analysis for historical manuscripts"
 readme = "README.md"

@@ -1,10 +1,10 @@
-# CLAUDE.md — Transkrybe.ai
+# CLAUDE.md — Transcribe-HTR
 
 Handwritten text recognition (HTR) app supporting OpenAI, Gemini, and Anthropic
 (Claude) vision models. React + FastAPI is the only application in the tree; the
 original Streamlit prototype was removed for the public release.
 
-**Naming:** the product is **Transkrybe.ai** and the GitHub repository is
+**Naming:** the product is **Transcribe-HTR** and the GitHub repository is
 `Transcribe-HTR`.
 
 ---
@@ -51,8 +51,8 @@ cd frontend && npm install                     # Node 22+ required by Vite 8
 
 Python 3.11 recommended (floor is 3.10, declared in `pyproject.toml`). Conda:
 ```bash
-conda create -n transkrybe python=3.11
-conda activate transkrybe
+conda create -n transcribe-htr python=3.11
+conda activate transcribe-htr
 pip install -r backend/requirements.txt
 ```
 

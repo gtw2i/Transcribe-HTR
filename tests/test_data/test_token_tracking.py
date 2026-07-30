@@ -1,5 +1,5 @@
 """
-Test token tracking for Transkrybe.ai application.
+Test token tracking for Transcribe-HTR application.
 
 This module contains tests for per-output token tracking in the transcription engine,
 including token allocation, validation, and JSON output structure.

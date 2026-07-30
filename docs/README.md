@@ -1,6 +1,6 @@
 # Documentation
 
-Documentation for **Transkrybe.ai**. Start with the [main README](../README.md)
+Documentation for **Transcribe-HTR**. Start with the [main README](../README.md)
 for installation, configuration, and a usage walkthrough.
 
 ## User guides

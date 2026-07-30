@@ -40,7 +40,7 @@ def create_v2_json_schema(
             "created_at": now_utc,
             "updated_at": now_utc,
             "citation": (
-                "West, G. & Wallin, J. (2026). Transkrybe.ai: "
+                "West, G. & Wallin, J. (2026). Transcribe-HTR: "
                 "An AI-powered tool for historical manuscript transcription "
                 "and analysis [Software]."
             ),

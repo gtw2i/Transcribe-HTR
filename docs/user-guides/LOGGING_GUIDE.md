@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Streamlit Transcribe application includes a comprehensive logging system that provides:
+The Transcribe-HTR application includes a comprehensive logging system that provides:
 
 - **Configurable logging** via environment variables and config settings
 - **Structured logging** with contextual information
@@ -27,30 +27,36 @@ LOG_TO_CONSOLE = False  # Disabled to keep web UI clean
 You can override any setting using environment variables:
 
 ```bash
-# Disable logging entirely
-export STREAMLIT_TRANSCRIBE_ENABLE_LOGGING=false
+# Change log level — DEBUG, INFO, WARNING, ERROR, CRITICAL (default: INFO)
+export TRANSCRIBE_HTR_LOG_LEVEL=DEBUG
 
-# Change log level
-export STREAMLIT_TRANSCRIBE_LOG_LEVEL=DEBUG
+# Enable console output, useful in development (default: false)
+export TRANSCRIBE_HTR_LOG_TO_CONSOLE=true
 
-# Enable console output (for development)
-export STREAMLIT_TRANSCRIBE_LOG_TO_CONSOLE=true
+# Disable file output (default: true)
+export TRANSCRIBE_HTR_LOG_TO_FILE=false
 
-# Disable file output
-export STREAMLIT_TRANSCRIBE_LOG_TO_FILE=false
+# Write logs somewhere other than ./logs
+export TRANSCRIBE_HTR_LOG_DIR=/var/log/transcribe-htr
+
+# Flush every record immediately rather than buffering (default: true)
+export TRANSCRIBE_HTR_LOG_FORCE_FLUSH=false
 ```
+
+There is no on/off switch: logging is always configured. To silence it, set
+`TRANSCRIBE_HTR_LOG_TO_FILE=false` and leave console output disabled.
 
 ## Log Files
 
 - **Location**: `logs/` directory in the application root
-- **Format**: `streamlit_transcribe_YYYYMMDD.log`
+- **Format**: `transcribe_htr_YYYYMMDD.log`
 - **Rotation**: Daily (one file per day)
 - **Structure**: Timestamped entries with module, level, function, and contextual data
 
 ### Example Log Entry
 
 ```
-2025-09-14 14:52:54 - streamlit_transcribe - INFO - transcribe_image:45 - Starting transcription | model=gpt-4o | session_id=abc123 | n_responses=3
+2025-09-14 14:52:54 - transcribe_htr - INFO - transcribe_image:45 - Starting transcription | model=gpt-4o | session_id=abc123 | n_responses=3
 ```
 
 ## Usage in Code

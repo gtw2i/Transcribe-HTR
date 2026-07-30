@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Runner for Transkrybe.ai
+Comprehensive Test Runner for Transcribe-HTR
 
 This script replaces standalone validation scripts with integrated pytest tests
 and provides multiple test execution modes for different scenarios.
@@ -26,7 +26,7 @@ sys.path.insert(0, str(project_root))
 
 def run_all_tests():
     """Run the complete test suite."""
-    print("🧪 Running Transkrybe.ai Complete Test Suite")
+    print("🧪 Running Transcribe-HTR Complete Test Suite")
     print("=" * 60)
 
     tests_dir = Path(__file__).parent
@@ -202,7 +202,7 @@ def run_category_tests(category):
 def main():
     """Main entry point with command line argument parsing."""
     parser = argparse.ArgumentParser(
-        description="Transkrybe.ai Test Runner",
+        description="Transcribe-HTR Test Runner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

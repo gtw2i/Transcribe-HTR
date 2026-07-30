@@ -1,1 +1,1 @@
-# Tests package for Transkrybe.ai application
+# Tests package for Transcribe-HTR application

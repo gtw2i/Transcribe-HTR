@@ -1,5 +1,5 @@
 """
-Test logging integration functionality for Transkrybe.ai application.
+Test logging integration functionality for Transcribe-HTR application.
 
 This module contains tests for logging configuration, file creation,
 environment variable overrides, and audit logging functionality.
@@ -237,7 +237,7 @@ class TestEnvironmentVariableOverride:
 
     def test_environment_variable_override(self):
         """Environment variables override the logging settings on reload."""
-        env_var_name = "STREAMLIT_TRANSCRIBE_LOG_LEVEL"
+        env_var_name = "TRANSCRIBE_HTR_LOG_LEVEL"
         original_value = os.environ.get(env_var_name)
 
         try:
@@ -263,9 +263,9 @@ class TestEnvironmentVariableOverride:
     def test_multiple_environment_overrides(self):
         """Test multiple environment variable overrides."""
         env_vars = {
-            "STREAMLIT_TRANSCRIBE_LOG_LEVEL": "DEBUG",
-            "STREAMLIT_TRANSCRIBE_LOG_TO_FILE": "false",
-            "STREAMLIT_TRANSCRIBE_LOG_TO_CONSOLE": "true",
+            "TRANSCRIBE_HTR_LOG_LEVEL": "DEBUG",
+            "TRANSCRIBE_HTR_LOG_TO_FILE": "false",
+            "TRANSCRIBE_HTR_LOG_TO_CONSOLE": "true",
         }
 
         # Save original values
@@ -348,7 +348,7 @@ class TestLoggingIntegration:
                 with patch.dict(
                     os.environ,
                     {
-                        f"STREAMLIT_TRANSCRIBE_{k}": str(v)
+                        f"TRANSCRIBE_HTR_{k}": str(v)
                         for k, v in config_scenario.items()
                     },
                 ):

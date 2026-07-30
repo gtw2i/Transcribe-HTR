@@ -1,8 +1,8 @@
-# Transkrybe.ai
+# Transcribe-HTR
 
 **LLM-assisted handwritten text recognition and analysis for historical manuscripts.**
 
-Transkrybe.ai is a web application for transcribing handwritten historical documents using
+Transcribe-HTR is a web application for transcribing handwritten historical documents using
 vision-capable large language models. It supports **OpenAI**, **Google Gemini**, and
 **Anthropic Claude** interchangeably, and goes beyond single-shot transcription: it can run the
 same page through several models, measure how much they agree, reconcile them into a consensus
@@ -83,8 +83,8 @@ You can skip the `.env` file entirely and paste an API key into the Upload tab a
 ### 2. Backend (port 8000)
 
 ```bash
-conda create -n transkrybe python=3.11        # or: python -m venv .venv
-conda activate transkrybe
+conda create -n transcribe-htr python=3.11        # or: python -m venv .venv
+conda activate transcribe-htr
 
 pip install -r backend/requirements.txt
 python -m spacy download en_core_web_sm       # optional — enables NER

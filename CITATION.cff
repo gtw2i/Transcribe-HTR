@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software in academic work, please cite it as below."
 type: software
-title: "Transkrybe.ai: LLM-assisted handwritten text recognition and analysis for historical manuscripts"
+title: "Transcribe-HTR: LLM-assisted handwritten text recognition and analysis for historical manuscripts"
 abstract: >-
   A web application for transcribing handwritten historical documents with
   vision-capable large language models from OpenAI, Google, and Anthropic.

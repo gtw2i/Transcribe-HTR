@@ -1,6 +1,6 @@
 # logging_config.py
 """
-Centralized logging configuration for Streamlit Transcribe app.
+Centralized logging configuration for Transcribe-HTR app.
 
 Provides structured logging with configurable levels and outputs.
 Keeps application logs separate from user-facing messages.
@@ -21,14 +21,14 @@ from config import DEBUG_MODE, LOG_FORCE_FLUSH
 # =========================
 
 # Logging settings (can be overridden by environment variables)
-LOG_LEVEL = os.getenv("STREAMLIT_TRANSCRIBE_LOG_LEVEL", "INFO").upper()
-LOG_TO_FILE = os.getenv("STREAMLIT_TRANSCRIBE_LOG_TO_FILE", "true").lower() == "true"
+LOG_LEVEL = os.getenv("TRANSCRIBE_HTR_LOG_LEVEL", "INFO").upper()
+LOG_TO_FILE = os.getenv("TRANSCRIBE_HTR_LOG_TO_FILE", "true").lower() == "true"
 LOG_TO_CONSOLE = (
-    os.getenv("STREAMLIT_TRANSCRIBE_LOG_TO_CONSOLE", "false").lower() == "true"
+    os.getenv("TRANSCRIBE_HTR_LOG_TO_CONSOLE", "false").lower() == "true"
 )
-LOG_DIRECTORY = Path(os.getenv("STREAMLIT_TRANSCRIBE_LOG_DIR", "logs"))
+LOG_DIRECTORY = Path(os.getenv("TRANSCRIBE_HTR_LOG_DIR", "logs"))
 LOG_FORCE_FLUSH_ENV = (
-    os.getenv("STREAMLIT_TRANSCRIBE_LOG_FORCE_FLUSH", str(LOG_FORCE_FLUSH)).lower()
+    os.getenv("TRANSCRIBE_HTR_LOG_FORCE_FLUSH", str(LOG_FORCE_FLUSH)).lower()
     == "true"
 )
 
@@ -47,7 +47,7 @@ if LOG_TO_FILE:
 # =========================
 
 
-def setup_logger(name: str = "streamlit_transcribe") -> logging.Logger:
+def setup_logger(name: str = "transcribe_htr") -> logging.Logger:
     """
     Set up a logger with configurable handlers.
 
@@ -78,7 +78,7 @@ def setup_logger(name: str = "streamlit_transcribe") -> logging.Logger:
         try:
             log_file = (
                 LOG_DIRECTORY
-                / f"streamlit_transcribe_{datetime.now().strftime('%Y%m%d')}.log"
+                / f"transcribe_htr_{datetime.now().strftime('%Y%m%d')}.log"
             )
             file_handler = logging.FileHandler(log_file, encoding="utf-8")
             file_handler.setLevel(level)

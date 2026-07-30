@@ -40,7 +40,7 @@ from schemas.common import HealthResponse
 
 SECRET_KEY = os.getenv("SESSION_SECRET_KEY") or secrets.token_hex(32)
 
-app = FastAPI(title="Transkrybe.ai API", version="2.0")
+app = FastAPI(title="Transcribe-HTR API", version="2.0")
 
 # Session middleware (cookie-based, signed with SECRET_KEY)
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, session_cookie="session")
