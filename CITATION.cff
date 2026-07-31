@@ -1,19 +1,20 @@
 cff-version: 1.2.0
-message: "If you use this software in academic work, please cite it as below."
+message: "If you use Transcribe-HTR in academic work, please cite the software and the paper below."
 type: software
 title: "Transcribe-HTR: LLM-assisted handwritten text recognition and analysis for historical manuscripts"
 abstract: >-
   A web application for transcribing handwritten historical documents with
-  vision-capable large language models from OpenAI, Google, and Anthropic.
-  Supports multi-model transcription, character- and word-error-rate
-  consistency analysis, consensus reconciliation, named-entity recognition,
-  and export to JSON, plain text, and DOCX.
+  vision-capable large language models from OpenAI, Google, and Anthropic. It
+  supports multi-model transcription, character- and word-level consistency
+  analysis, consensus reconciliation, named-entity recognition, and structured
+  export.
 authors:
   - family-names: West
     given-names: Graham
+    email: graham.west@mmc.edu
   - family-names: Wallin
     given-names: John
-    name-particle: F.
+    email: john.wallin@mtsu.edu
 version: "2.0.0"
 date-released: 2026-07-29
 license: BSD-2-Clause
@@ -21,27 +22,20 @@ repository-code: "https://github.com/gtw2i/Transcribe-HTR"
 keywords:
   - historical document transcription
   - handwritten text recognition
-  - AI vision models
+  - large language models
   - manuscript analysis
   - digital humanities
 preferred-citation:
   type: conference-paper
-  title: "An Application for LLM-Powered Document Transcription with Interactive Tools for Textual Analysis"
-  year: 2025
-  collection-title: "Past Meets Future 2025 Workshop"
+  title: "Transcribe-HTR: An Auditable, LLM-Based Historical Document Intelligence Platform"
   authors:
     - family-names: West
       given-names: Graham
     - family-names: Wallin
       given-names: John
-      name-particle: F.
-    - family-names: Fialka
-      given-names: A.
-    - family-names: Swindall
-      given-names: M. I.
-    - family-names: Dyson
-      given-names: J.
-    - family-names: Sherridan
-      given-names: R.
     - family-names: Brusuelas
-      given-names: J. H.
+      given-names: James H.
+    - family-names: Fialka
+      given-names: Andrew
+  collection-title: "Proceedings of the 2026 ACM/IEEE Joint Conference on Digital Libraries"
+  year: 2026
