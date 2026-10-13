@@ -26,6 +26,7 @@ from typing import Optional
 import yaml
 
 from app_paths import user_profiles_dir
+from atomic_io import atomic_write_text
 from config import ACTIVE_PROFILE, PROFILES_DIR, VERBALIZE_ENABLED
 
 # Slugs become filenames, so they are restricted to a safe alphabet. This is
@@ -201,8 +202,9 @@ def save_profile(slug: str, data: dict) -> None:
     data = {k: v for k, v in data.items() if k != "template"}
     path = _user_path(slug)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    atomic_write_text(
+        path, yaml.dump(data, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    )
 
 
 def delete_profile(slug: str) -> bool:

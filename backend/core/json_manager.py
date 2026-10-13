@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from app_version import APP_VERSION
+from atomic_io import atomic_write_json
 from logging_config import audit_logger, log_error, log_info, log_warning
 from session_workspace import (
     FileIndex,
@@ -126,8 +127,7 @@ def save_transcription_run(
             with open(json_path, "r", encoding="utf-8") as f:
                 existing_json = json.load(f)
             append_run_to_v2_json(existing_json, run_data)
-            with open(json_path, "w", encoding="utf-8") as f:
-                json.dump(existing_json, f, indent=2, ensure_ascii=False)
+            atomic_write_json(json_path, existing_json, indent=2, ensure_ascii=False)
             if root in file_index.records:
                 file_index.records[root].run_count = len(existing_json.get("runs", []))
         else:
@@ -138,8 +138,7 @@ def save_transcription_run(
                 return False
             json_filename = get_canonical_json_filename(root)
             new_json_path = workspace.workspace_path / json_filename
-            with open(new_json_path, "w", encoding="utf-8") as f:
-                json.dump(v2_json, f, indent=2, ensure_ascii=False)
+            atomic_write_json(new_json_path, v2_json, indent=2, ensure_ascii=False)
             file_index.register_file(new_json_path)
 
         audit_logger.log_json_save(str(json_path or "new"), "backend")
@@ -203,8 +202,7 @@ def save_harmonization(
         )
 
         append_harmonization_to_v2_json(existing_json, harm_record)
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(existing_json, f, indent=2, ensure_ascii=False)
+        atomic_write_json(json_path, existing_json, indent=2, ensure_ascii=False)
 
         audit_logger.log_json_save(str(json_path), "backend")
         return True
@@ -255,8 +253,7 @@ def save_summary(
         )
 
         append_summary_to_v2_json(existing_json, summary_record)
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(existing_json, f, indent=2, ensure_ascii=False)
+        atomic_write_json(json_path, existing_json, indent=2, ensure_ascii=False)
 
         audit_logger.log_json_save(str(json_path), "backend")
         return True
@@ -311,8 +308,7 @@ def save_ner_result(
         )
 
         append_ner_result_to_v2_json(existing_json, ner_record)
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(existing_json, f, indent=2, ensure_ascii=False)
+        atomic_write_json(json_path, existing_json, indent=2, ensure_ascii=False)
 
         audit_logger.log_json_save(str(json_path), "backend")
         return True
@@ -363,8 +359,7 @@ def save_analysis(
         record = create_analysis_record(report, user_note=user_note)
         append_analysis_to_v2_json(existing_json, record)
 
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(existing_json, f, indent=2, ensure_ascii=False)
+        atomic_write_json(json_path, existing_json, indent=2, ensure_ascii=False)
 
         audit_logger.log_json_save(str(json_path), "backend")
         log_info(f"Saved consistency analysis for {root}", analysis_id=record["analysis_id"])
@@ -414,8 +409,7 @@ def delete_analysis(file_index: FileIndex, root: str, analysis_id: str) -> bool:
         existing_json["analyses"] = remaining
         existing_json["metadata"]["updated_at"] = datetime.utcnow().isoformat() + "Z"
 
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(existing_json, f, indent=2, ensure_ascii=False)
+        atomic_write_json(json_path, existing_json, indent=2, ensure_ascii=False)
 
         audit_logger.log_json_save(str(json_path), "backend")
         return True

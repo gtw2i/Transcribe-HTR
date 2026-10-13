@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from atomic_io import atomic_write_bytes
 from logging_config import log_error, log_info, log_warning
 
 logger = logging.getLogger(__name__)
@@ -555,7 +556,7 @@ class SessionWorkspace:
             normalized_name = normalize_filename(filename, preserve_root=True)
             final_name = generate_unique_filename(self.workspace_path, normalized_name, allow_overwrite=allow_overwrite)
             target_path = self.workspace_path / final_name
-            target_path.write_bytes(data)
+            atomic_write_bytes(target_path, data)
 
             if file_index is not None:
                 try:
