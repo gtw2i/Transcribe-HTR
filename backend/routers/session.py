@@ -12,6 +12,11 @@ from schemas.common import SessionInfo
 
 router = APIRouter(tags=["session"])
 
+# Image types that are resized and normalized to PNG on upload. The workspace
+# itself only stores .png/.jpg/.jpeg, so any image type the UI accepts must be
+# listed here or the upload is rejected.
+CONVERTED_IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tif", ".tiff")
+
 
 @router.post("/session/init", response_model=SessionInfo)
 def init_session(request: Request):
@@ -38,7 +43,7 @@ async def upload_files(
             filename = upload.filename or "unknown"
 
             # Resize images before saving to save disk space
-            if filename.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp")):
+            if filename.lower().endswith(CONVERTED_IMAGE_EXTENSIONS):
                 try:
                     data = resize_image_for_api(data, max_size=2048)
                     # Normalize to .png after resize

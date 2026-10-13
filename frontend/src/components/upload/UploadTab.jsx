@@ -17,8 +17,6 @@ const ACCEPTED_TYPES = {
   'image/png': ['.png'],
   'image/gif': ['.gif'],
   'image/webp': ['.webp'],
-  'image/heic': ['.heic'],
-  'image/heif': ['.heif'],
   'image/tiff': ['.tif', '.tiff'],
   'image/bmp': ['.bmp']
 }
