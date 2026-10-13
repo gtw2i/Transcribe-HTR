@@ -2,13 +2,40 @@ import logging
 import re
 from html import escape
 
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
 import numpy as np
 from tqdm import tqdm
 
 # Set up logger for this module
 logger = logging.getLogger(__name__)
+
+
+# --- Colours ---
+# Hard-coded so colorization does not need matplotlib: it is slow to import at
+# startup, and cm.get_cmap (used here before) was removed in matplotlib 3.9.
+
+# matplotlib's "tab10" palette, cycled for more than ten entities.
+TAB10 = [
+    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+    "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+]
+
+# Stops of the green → yellow → orange → red disagreement gradient
+# (matplotlib's named colours "green", "yellow", "orange", "red").
+_GRADIENT_STOPS = [(0, 128, 0), (255, 255, 0), (255, 165, 0), (255, 0, 0)]
+
+
+def _hex_to_rgb(hex_color):
+    return tuple(int(hex_color[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def gradient_rgb(value):
+    """Map value in [0, 1] (clamped) onto the disagreement gradient as 0-255 RGB."""
+    v = min(max(float(value), 0.0), 1.0)
+    pos = v * (len(_GRADIENT_STOPS) - 1)
+    i = min(int(pos), len(_GRADIENT_STOPS) - 2)
+    t = pos - i
+    lo, hi = _GRADIENT_STOPS[i], _GRADIENT_STOPS[i + 1]
+    return tuple(int(lo[k] + (hi[k] - lo[k]) * t) for k in range(3))
 
 
 # --- Levenshtein & Alignment Functions ---
@@ -330,10 +357,6 @@ def colorize_words(
         f"Number of values must match number of non-whitespace tokens: "
         f"{len(words_only)} tokens vs {len(values)} values"
     )
-    custom_cmap = mcolors.LinearSegmentedColormap.from_list(
-        "green_yellow_orange_red", ["green", "yellow", "orange", "red"]
-    )
-    norm = mcolors.Normalize(vmin=0, vmax=1)
     container_style = (
         f"white-space: pre-wrap; display: inline-block;"
         f"padding:{block_pad_y}px {block_pad_x}px;"
@@ -346,9 +369,9 @@ def colorize_words(
             html.append(tok.replace("\n", "<br>"))
         else:
             v = float(values[word_idx])
-            rgba = custom_cmap(norm(v))
+            r, g, b = gradient_rgb(v)
             alpha = 0.0 if v == float(transparent_at) else 0.4
-            rgba_str = f"rgba({int(rgba[0]*255)}, {int(rgba[1]*255)}, {int(rgba[2]*255)}, {alpha})"
+            rgba_str = f"rgba({r}, {g}, {b}, {alpha})"
             span_style = (
                 f"background-color:{rgba_str};"
                 f"padding:{pad_y}px {pad_x}px;"
@@ -379,10 +402,6 @@ def colorize_chars(
     assert len(chars) == len(
         values
     ), f"Number of values must match number of characters: {len(chars)} vs {len(values)}"
-    custom_cmap = mcolors.LinearSegmentedColormap.from_list(
-        "green_yellow_orange_red", ["green", "yellow", "orange", "red"]
-    )
-    norm = mcolors.Normalize(vmin=0, vmax=1)
     container_style = (
         f"white-space: pre-wrap; display: inline-block;"
         f"padding:{block_pad_y}px {block_pad_x}px;"
@@ -394,11 +413,9 @@ def colorize_chars(
             html_out.append("<br>")
             continue
         v = float(val)
-        rgba = custom_cmap(norm(v))
+        r, g, b = gradient_rgb(v)
         alpha = 0.0 if v == float(transparent_at) else 0.4
-        rgba_str = (
-            f"rgba({int(rgba[0]*255)}, {int(rgba[1]*255)}, {int(rgba[2]*255)}, {alpha})"
-        )
+        rgba_str = f"rgba({r}, {g}, {b}, {alpha})"
         span_style = (
             f"background-color:{rgba_str};"
             f"padding:{pad_y}px {pad_x}px;"
@@ -514,14 +531,13 @@ def colorize_ner_gemini(
 
     # Assign colors from tab10 keyed by entity_id
     unique_eids = list(dict.fromkeys(r["entity_id"] for r in deduped))
-    n = max(len(unique_eids), 1)
-    cmap = cm.get_cmap("tab10", n)
     eid_rgba: dict = {}
     eid_hex: dict = {}
     for i, eid in enumerate(unique_eids):
-        r, g, b, _ = cmap(i)
-        eid_rgba[eid] = f"rgba({int(r * 255)},{int(g * 255)},{int(b * 255)},{alpha})"
-        eid_hex[eid] = mcolors.to_hex((r, g, b))
+        hex_color = TAB10[i % len(TAB10)]
+        r, g, b = _hex_to_rgb(hex_color)
+        eid_rgba[eid] = f"rgba({r},{g},{b},{alpha})"
+        eid_hex[eid] = hex_color
 
     # Build highlighted HTML
     container_style = "white-space:pre-wrap; display:inline-block; font-family:inherit; line-height:1.4;"
