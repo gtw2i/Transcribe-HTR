@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useSession } from './hooks/useSession.js'
+import { useRememberedKeys } from './hooks/useRememberedKeys.js'
 import { useAppStore } from './store/appStore.js'
 import { AppHeader } from './components/layout/AppHeader.jsx'
 import { TabBar } from './components/layout/TabBar.jsx'
@@ -24,6 +25,7 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   useSession()
+  useRememberedKeys()
 
   const activeTab = useAppStore((s) => s.activeTab)
   const gettingStartedOpen = useAppStore((s) => s.gettingStartedOpen)

@@ -30,6 +30,8 @@ for _var, _sub in (
     ("TRANSCRIBE_HTR_CACHE_DIR", "cache"),
 ):
     os.environ[_var] = str(_USER_DIRS_ROOT / _sub)
+# Never touch the developer's real OS credential store (core/secret_store.py).
+os.environ["TRANSCRIBE_HTR_SECRET_BACKEND"] = "file"
 
 # Test configuration constants
 TEST_TTS_MODELS = ["tts-1", "tts-1-hd"]

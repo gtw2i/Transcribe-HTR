@@ -126,7 +126,35 @@ function ModelSettings() {
         />
       )}
 
+      <RememberKeysOption />
     </div>
+  )
+}
+
+const SECRET_BACKEND_LABEL = {
+  keyring: navigator.platform.startsWith('Mac') ? 'your macOS Keychain' : 'Windows Credential Manager',
+  file: 'a private file in your user account',
+}
+
+// Desktop app only. Keys are per user account, even on a shared computer.
+function RememberKeysOption() {
+  const desktop = useAppStore((s) => s.desktop)
+  const appInfo = useAppStore((s) => s.appInfo)
+  const remember = useAppStore((s) => s.rememberKeys)
+  const setRemember = useAppStore((s) => s.setRememberKeys)
+  if (!desktop) return null
+
+  const where = SECRET_BACKEND_LABEL[appInfo?.secret_backend] || 'this computer'
+  return (
+    <label style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-start', marginTop: 'var(--space-2)', fontWeight: 'normal' }}>
+      <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+      <span>
+        Remember my API keys on this computer
+        <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+          Stored in {where}, visible only to your user account. Untick to forget them.
+        </span>
+      </span>
+    </label>
   )
 }
 

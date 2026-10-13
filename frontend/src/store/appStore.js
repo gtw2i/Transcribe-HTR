@@ -10,6 +10,22 @@ export const useAppStore = create((set, get) => ({
     errorBanner: { message: 'Your session has expired. Refresh the page to continue.', context: 'Session' },
   }),
 
+  // ── Desktop app ──
+  // appInfo comes from GET /api/app-info; desktop === true inside the
+  // packaged app (launch-token mode), false in the browser/web mode.
+  appInfo: null,
+  desktop: false,
+  rememberKeys: true,
+  storedKeysLoaded: false,
+  setAppInfo: (info) => set({ appInfo: info, desktop: !!info?.desktop }),
+  setRememberKeys: (v) => set({ rememberKeys: v }),
+  loadStoredKeys: (keys) => set({
+    openaiApiKey: keys.openai || '',
+    geminiApiKey: keys.gemini || '',
+    anthropicApiKey: keys.anthropic || '',
+    storedKeysLoaded: true,
+  }),
+
   // ── Navigation ──
   activeTab: 'start',
   setActiveTab: (tab) => set({ activeTab: tab }),

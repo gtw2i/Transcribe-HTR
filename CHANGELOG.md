@@ -30,6 +30,17 @@ Work toward a turnkey Windows/macOS desktop app. See
   `<workspace>/trash/<timestamp>/`, not deleted outright.
 - Document JSON, uploads and user profiles are written atomically, so a crash
   mid-save cannot corrupt them.
+- **Remembered API keys** (desktop app only):
+  - The keys are kept per user account, and the "Remember my API keys" box is
+    on by default.
+  - Storage is Windows Credential Manager on Windows. Elsewhere it is an
+    owner-only file, until the macOS builds are signed.
+  - Endpoints: `GET/PUT/DELETE /api/settings/keys` (desktop launch token
+    required, otherwise 404) and `GET /api/app-info`.
+- **Desktop local-server hardening** (`TRANSCRIBE_HTR_LAUNCH_TOKEN`):
+  - Requests need the per-launch token.
+  - Foreign `Host` headers are rejected.
+  - API docs and the dev CORS origins are turned off.
 
 ### Changed
 - **Logs** moved from `./logs` (relative to wherever the server started) to the

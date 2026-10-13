@@ -42,6 +42,7 @@ from routers import (
     ner,
     profiles,
     session,
+    settings,
     summarize,
     transcription,
     tts,
@@ -95,6 +96,7 @@ app.include_router(tts.router,            prefix="/api")
 app.include_router(profiles.router,       prefix="/api")
 app.include_router(models.router,         prefix="/api")
 app.include_router(export.router,         prefix="/api")
+app.include_router(settings.router,       prefix="/api")
 
 
 # ── Health check ─────────────────────────────────────────────────────────────
