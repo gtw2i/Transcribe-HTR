@@ -21,9 +21,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app_paths import frontend_dist_dir
 from app_version import APP_VERSION
+from desktop_security import (
+    ALLOWED_HOSTS,
+    AUTH_PATH,
+    LaunchTokenMiddleware,
+    launch_token,
+    make_auth_endpoint,
+)
 from routers import (
     colorize,
     consistency,
@@ -42,20 +50,37 @@ from schemas.common import HealthResponse
 
 SECRET_KEY = os.getenv("SESSION_SECRET_KEY") or secrets.token_hex(32)
 
-app = FastAPI(title="Transcribe-HTR API", version=APP_VERSION)
+# Set by the desktop launcher; enables local-server hardening (see
+# core/desktop_security.py). Unset in web mode, development and tests.
+_LAUNCH_TOKEN = launch_token()
+_DESKTOP = _LAUNCH_TOKEN is not None
+
+app = FastAPI(
+    title="Transcribe-HTR API",
+    version=APP_VERSION,
+    docs_url=None if _DESKTOP else "/docs",
+    redoc_url=None if _DESKTOP else "/redoc",
+    openapi_url=None if _DESKTOP else "/openapi.json",
+)
 
 # Session middleware (cookie-based, signed with SECRET_KEY)
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, session_cookie="session")
 
-# CORS — allow the React dev server (or any localhost during development)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:8501"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["Content-Disposition"],
-)
+if _DESKTOP:
+    # Added last = outermost: the Host check runs before the token check.
+    app.add_middleware(LaunchTokenMiddleware, token=_LAUNCH_TOKEN)
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
+    app.add_api_route(AUTH_PATH, make_auth_endpoint(_LAUNCH_TOKEN), methods=["GET"], include_in_schema=False)
+else:
+    # CORS — allow the React dev server (or any localhost during development)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:8501"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["Content-Disposition"],
+    )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(session.router,        prefix="/api")
