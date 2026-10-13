@@ -105,6 +105,11 @@ def user_cache_dir() -> Path:
     )
 
 
+def user_workspace_dir() -> Path:
+    """The persistent single-user workspace (desktop mode): uploads + results."""
+    return user_data_dir() / "workspace"
+
+
 def user_profiles_dir() -> Path:
     """Profiles the user creates. Private to the current account."""
     return user_data_dir() / "profiles"

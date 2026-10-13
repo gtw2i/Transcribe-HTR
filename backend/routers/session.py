@@ -7,7 +7,13 @@ from fastapi import APIRouter, Depends, File, Request, UploadFile
 from fastapi.responses import JSONResponse
 
 from core.image_utils import resize_image_for_api
-from dependencies import create_session, get_file_index, get_session, get_workspace
+from dependencies import (
+    create_session,
+    get_file_index,
+    get_session,
+    get_workspace,
+    persistent_workspace_enabled,
+)
 from schemas.common import SessionInfo
 
 router = APIRouter(tags=["session"])
@@ -36,6 +42,10 @@ async def upload_files(
     """Upload image (and optionally audio) files to the session workspace."""
     roots = []
     errors = []
+    # A persistent workspace keeps months of work: re-uploading "page1.jpg"
+    # must create page1-1 rather than replace the image under page1's
+    # existing transcriptions. Ephemeral web sessions keep overwrite semantics.
+    allow_overwrite = not persistent_workspace_enabled()
 
     for upload in files:
         try:
@@ -52,7 +62,9 @@ async def upload_files(
                 except Exception:
                     pass  # keep original bytes if resize fails
 
-            path = workspace.persist_uploaded_file(filename, data, file_index=file_index)
+            path = workspace.persist_uploaded_file(
+                filename, data, file_index=file_index, allow_overwrite=allow_overwrite
+            )
             if path:
                 root = path.stem
                 if root not in roots:

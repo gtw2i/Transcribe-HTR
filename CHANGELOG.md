@@ -18,6 +18,13 @@ Work toward a turnkey Windows/macOS desktop app. See
   in step.
 - CI runs on Windows and macOS (Apple Silicon), and on PRs into feature
   branches.
+- **Persistent workspace mode** (`TRANSCRIBE_HTR_PERSISTENT_WORKSPACE=true`,
+  used by the desktop app):
+  - One private workspace in the user's data directory, so documents and
+    results survive restarts.
+  - Files placed in the folder appear on the next load.
+  - Re-uploading a file name creates a new document (`page-1`) instead of
+    replacing the existing one.
 
 ### Changed
 - **Logs** moved from `./logs` (relative to wherever the server started) to the

@@ -484,10 +484,17 @@ class FileIndex:
 # =========================
 
 class SessionWorkspace:
-    """Per-session temp file storage. session_id must be provided explicitly."""
+    """Per-session file storage. session_id must be provided explicitly.
 
-    def __init__(self, session_id: str):
+    By default the workspace is a disposable temp directory,
+    <base_root>/sessions/<session_id>/workspace. Passing workspace_path pins it
+    to a fixed location instead (the desktop app's persistent workspace in the
+    user's data directory); cleanup_session() never deletes such a workspace.
+    """
+
+    def __init__(self, session_id: str, workspace_path: Optional[Path] = None):
         self.session_id = session_id
+        self._fixed_workspace_path = Path(workspace_path) if workspace_path else None
         self.base_root = self._determine_base_root()
         self.workspace_path: Optional[Path] = None
         self.staging_path: Optional[Path] = None
@@ -505,7 +512,10 @@ class SessionWorkspace:
         if self._initialized:
             return self.is_writable
         try:
-            self.workspace_path = self.base_root / "sessions" / self.session_id / "workspace"
+            self.workspace_path = (
+                self._fixed_workspace_path
+                or self.base_root / "sessions" / self.session_id / "workspace"
+            )
             self.staging_path = self.workspace_path / "staging"
             self.exports_path = self.workspace_path / "exports"
             self.audio_path = self.workspace_path / "audio"
