@@ -49,18 +49,20 @@ def get_profile(slug: str):
 
 @router.post("/profiles")
 def upsert_profile(req: ProfileUpsertRequest):
-    """Create or update a user profile (template profiles are rejected)."""
-    from core.profile_manager import load_profile, save_profile
-    existing = load_profile(req.slug)
-    if existing and existing.get("template"):
+    """Create or update a user profile (bundled/template profiles are rejected)."""
+    from core.profile_manager import InvalidSlugError, ReadOnlyProfileError, save_profile
+    try:
+        save_profile(req.slug, req.data)
+    except InvalidSlugError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ReadOnlyProfileError:
         raise HTTPException(status_code=403, detail="Template profiles are read-only.")
-    save_profile(req.slug, req.data)
     return {"success": True, "slug": req.slug}
 
 
 @router.delete("/profiles/{slug}")
 def delete_profile(slug: str):
-    """Delete a user profile (template profiles are rejected)."""
+    """Delete a user profile (bundled/template profiles are rejected)."""
     from core.profile_manager import delete_profile as _delete, load_profile
     existing = load_profile(slug)
     if existing is None:

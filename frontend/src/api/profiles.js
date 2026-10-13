@@ -11,7 +11,7 @@ export async function getProfile(slug) {
 }
 
 export async function upsertProfile(slug, data) {
-  const res = await api.post('/profiles', { slug, ...data })
+  const res = await api.post('/profiles', { slug, data })
   return res.data
 }
 

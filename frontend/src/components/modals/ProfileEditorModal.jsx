@@ -11,7 +11,8 @@ import { Alert } from '../shared/Alert.jsx'
 import { InlineSpinner } from '../shared/Spinner.jsx'
 
 function makeSlug(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  // Must satisfy the backend's slug rule: ^[a-z0-9_-]{1,64}$
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64).replace(/-+$/, '')
 }
 
 const EMPTY_FIELDS = {
@@ -79,6 +80,7 @@ export function ProfileEditorModal() {
   function validate() {
     const errors = []
     if (!fields.name.trim()) errors.push('Name is required')
+    else if (!slug) errors.push('Name must contain at least one Latin letter or digit (a–z, 0–9)')
     if (!fields.system_prompt.trim()) errors.push('System prompt is required')
     if (!fields.transcription_prompt.trim()) errors.push('Transcription prompt is required')
     if (!fields.harmonization_system_prompt.trim()) errors.push('Harmonization system prompt is required')
