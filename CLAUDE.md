@@ -60,7 +60,7 @@ pip install -r backend/requirements.txt
 ## Running tests
 
 ```bash
-python -m pytest                                   # all tests (572 pass)
+python -m pytest                                   # all tests
 python -m pytest tests/test_analysis/              # consistency analysis
 python -m pytest tests/test_api/                   # API tests
 python -m pytest --cov=backend --cov-report=html   # with coverage
@@ -71,7 +71,10 @@ mirrors the `sys.path` setup in `backend/main.py`. That is what lets tests use
 the same flat module names the backend uses internally (`from config import
 ...`, `from logging_config import ...`).
 
-All 572 pass only with the full `backend/requirements.txt` installed. Tests
+`tests/conftest.py` points the per-user data/log/cache directories at a temp
+dir for the whole run, so tests never write into the repo or your profile.
+
+The suite passes fully only with `backend/requirements.txt` installed. Tests
 self-skip rather than fail when a declared dependency is absent, so a partial
 environment reports passes plus skips — check the skip reasons (`-rs`) before
 trusting a green run. The usual culprits are `rapidfuzz` (10 metrics tests) and
@@ -90,14 +93,14 @@ script may not be on PATH even when the package is installed.
 backend/
   main.py                     # FastAPI app, CORS, session middleware, router
                               #   mounts, and the static SPA catch-all (LAST)
-  run.py                      # convenience launcher (python run.py)
+  run.py                      # dev launcher (python run.py); loads <repo>/.env
   dependencies.py             # FastAPI DI: get_workspace(), get_file_index()
                               #   NB: sessions live in an in-process dict —
                               #   the app must run as a SINGLE worker/machine
   requirements.txt            # THE runtime dependency list
 
   routers/                    # one file per feature group, all mounted at /api
-    session.py                # session init/destroy
+    session.py                # session init, file upload
     files.py                  # file index, upload, image serving
     transcription.py          # POST /transcribe
     harmonization.py          # POST /harmonize
@@ -107,7 +110,7 @@ backend/
     ner.py                    # POST /ner
     tts.py                    # POST /tts
     profiles.py               # GET/POST/PUT/DELETE /profiles
-    models.py                 # GET /models (cached model list)
+    models.py                 # POST /models (live model list for a provider)
     export.py                 # GET /export (json|txt|docx, single file or zip)
 
   analysis/                   # consistency analysis (pure, no FastAPI deps)
@@ -140,6 +143,9 @@ backend/
     __init__.py               # fetch_model_list()/filter_model_list() public API, re-exports per-provider fns
 
   core/                       # shared utilities
+    app_paths.py              # THE source of filesystem locations: bundled
+                              #   resources + per-user data/log/cache dirs
+    app_version.py            # APP_VERSION, read from <repo>/VERSION
     image_utils.py
     config.py                 # constants and feature flags
     fallback.py               # model/provider fallback chain (MODEL_FALLBACK_ENABLED)
@@ -148,12 +154,11 @@ backend/
     json_manager.py           # load/save the v2 per-document JSON record
     session_workspace.py      # per-session workspace directory helpers
     schema_utils.py           # shared NER/entity schema helpers
-    resource_loaders.py       # cached loaders for profiles/schemas/templates
+    resource_loaders.py       # provider API clients + profile prompt proxy
     ...
 
-  profiles/                   # YAML transcription profiles
-                              #   (on Windows this is a junction to /profiles;
-                              #   only backend/profiles is tracked in git)
+  profiles/                   # bundled YAML profiles (read-only templates)
+  templates/                  # Jinja templates for TXT export
 ```
 
 ### Frontend (`frontend/src/`)
@@ -224,18 +229,30 @@ Cookie-based session (`session` cookie, signed with `SESSION_SECRET_KEY`).
 FastAPI `SessionMiddleware` stores per-session workspace path server-side.
 `get_workspace()` and `get_file_index()` in `dependencies.py` are the DI roots.
 
+**Filesystem locations**
+Never build paths from `__file__` or the working directory — use
+`core/app_paths.py`. Resources (bundled profiles, templates, entity schema,
+frontend dist) resolve against the repo, or `sys._MEIPASS` when frozen.
+Writable state goes to per-user, local (non-roaming) platformdirs locations
+(`%LOCALAPPDATA%\Transcribe-HTR`, `~/Library/Application Support/Transcribe-HTR`),
+overridable via `TRANSCRIBE_HTR_DATA_DIR` / `_LOG_DIR` / `_CACHE_DIR`. The
+desktop app installs read-only and may be shared by several accounts.
+
 **Profile system**
-Prompts live in `backend/profiles/*.yaml`. Template profiles (`template: true`)
-are read-only in the UI — users clone them to create editable copies.
-`verbalize_enabled` in a profile overrides the `VERBALIZE_ENABLED` env var.
+Two layers (`core/profile_manager.py`): bundled profiles in
+`backend/profiles/*.yaml` are always read-only and reported as templates;
+profiles users create go to `<user data>/profiles` and cannot shadow a bundled
+name. Slugs must match `^[a-z0-9_-]{1,64}$` (they become filenames). Users
+clone templates to get editable copies. `verbalize_enabled` in a profile
+overrides the `VERBALIZE_ENABLED` env var.
 
 **Provider routing**
 `PROVIDER_DEFAULT = PROVIDER_GEMINI` in `config.py`. OpenAI, Gemini, and
 Anthropic are all fully supported across transcription, harmonization, NER,
 and summarization — every provider module returns the same dict shape so
-downstream code is provider-agnostic. Model lists are fetched live and cached
-in `model_registry.json` (14-day TTL); `filter_model_list()` removes
-non-transcription models before caching/display.
+downstream code is provider-agnostic. Model lists are fetched live on each
+`POST /api/models` (no cache); `filter_model_list()` removes
+non-transcription models before display.
 
 **Model/provider fallback**
 `core/fallback.py` (gated by `MODEL_FALLBACK_ENABLED`, default on) retries a
@@ -282,7 +299,7 @@ explicitly re-raises 404 for `/api/*` so API typos return JSON, not HTML.
 | Constant | Default | Notes |
 |---|---|---|
 | `ACTIVE_PROFILE` | `"default_htr"` | Default profile stem |
-| `PROFILES_DIR` | `profiles/` | Relative to backend root |
+| `PROFILES_DIR` | `backend/profiles/` | Bundled (read-only) profiles, via `app_paths` |
 | `PROVIDER_DEFAULT` | `"Gemini"` | Active provider at startup |
 | `PROVIDERS` | `["OpenAI", "Gemini", "Anthropic"]` | All supported providers |
 | `TEMPERATURE` | `1.0` | API temperature |
@@ -293,7 +310,7 @@ explicitly re-raises 404 for `/api/*` so API typos return JSON, not HTML.
 | `VERBALIZE_ENABLED` | `true` | Backend flag; TTS tab is also hard-disabled via `frontend/src/featureFlags.js` (`TTS_UI_ENABLED`) |
 | `TTS_DEFAULT_MODEL` | `"tts-1"` | Standard quality TTS |
 | `TTS_DEFAULT_VOICE` | `"onyx"` | Dramatic male voice |
-| `LOG_RETENTION_DAYS` | `30` | Log files in `logs/` |
+| `LOG_RETENTION_DAYS` | `30` | Declared but not enforced yet; logs go to the per-user log dir |
 
 ---
 

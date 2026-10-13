@@ -144,6 +144,13 @@ All environment variables are optional. See [.env.example](.env.example).
 | `SESSION_SECRET_KEY` | random per start | Signs the session cookie. **Set this in any deployment** — otherwise every restart invalidates all sessions |
 | `MODEL_FALLBACK_ENABLED` | `true` | Set `false` to disable automatic model/provider fallback |
 | `VERBALIZE_ENABLED` | `true` | Backend text-to-speech flag. The TTS UI is separately hard-disabled in [`frontend/src/featureFlags.js`](frontend/src/featureFlags.js) |
+| `TRANSCRIBE_HTR_DATA_DIR` | per-user data dir¹ | Where your own profiles are saved |
+| `TRANSCRIBE_HTR_LOG_DIR` | per-user log dir¹ | Log files |
+| `TRANSCRIBE_HTR_CACHE_DIR` | per-user cache dir¹ | Disposable caches (e.g. TTS audio) |
+
+¹ Private to each user account. On Windows the location is under `%LOCALAPPDATA%\Transcribe-HTR`. On macOS it is
+`~/Library/Application Support/Transcribe-HTR`, with logs in `~/Library/Logs/` and caches in `~/Library/Caches/`.
+On Linux it follows the XDG directories.
 
 Further defaults — active profile, temperature, token caps, fallback chain — live in
 [`backend/core/config.py`](backend/core/config.py).
