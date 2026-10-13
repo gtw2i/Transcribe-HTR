@@ -1,5 +1,67 @@
 # Transcribe-HTR Desktop: turnkey Windows + macOS app
 
+## Status (updated 2026-10-13)
+
+**Branch:** `feature/desktop-app`, with work-in-progress commits pushed to GitHub. The throwaway spike is on `desktop/spike-packaging`, which is never merged.
+
+**Tests:** 698 pass, 1 skipped on Windows (the POSIX-only file-permission test, which runs on macOS/Linux). The baseline before this work was 561. CI covers Linux (Python 3.10–3.12), Windows and macOS 14 (Apple Silicon).
+
+**Progress against the plan:** Phases 0 and 0.5 are done, and Phase 1 is mostly done. That is ahead of the timeline below, which allowed about 7 weeks for this much.
+
+### Done
+
+| Phase | Item | Notes |
+|---|---|---|
+| Setup | Branch, plan committed as an ADR, CI on `feature/**` plus a Windows/macOS matrix | |
+| 0 | `core/app_paths.py`: one source for every path; per-user, local (non-roaming) data/log/cache directories | Multi-user safe. Fixes the startup crash when the working directory is not writable |
+| 0 | Profiles split into read-only bundled templates and per-user profiles; slug validation | Closes a path-traversal hole. **Also fixes:** profile saving from the UI always failed (422) |
+| 0 | spaCy removed (dead code, the biggest dependency) | |
+| 0 | NER colorize crash on matplotlib ≥ 3.9 fixed; matplotlib off the startup path | |
+| 0 | API-key log redaction covers every key field | |
+| 0 | TIFF uploads work; 16-bit scans and EXIF rotation handled; HEIC dropped (licensing open item) | |
+| 0 | `cleanup_session` can no longer delete outside its own session | |
+| 0 | `.env` loaded in development; `VERSION` + `CHANGELOG.md` + version consistency test; stale docs fixed | |
+| 0.5 | Packaging spike: PyInstaller + pywebview frozen builds pass smoke, self-check and window checks on Windows and macOS | **G1 = GO.** Results are in the Phase 0.5 section below |
+| 1.1 | Persistent single-user workspace that survives restarts and rescans the folder on load | |
+| 1.2 | Atomic writes (documents, uploads, profiles); uploads never overwrite; "Remove document" moves files to a trash folder | |
+| 1.3 | Local-server hardening: per-launch token, auth cookie, Host allowlist, docs and CORS off in desktop mode | |
+| 1.4 | Remembered API keys: `SecretStore` (Credential Manager, or an owner-only file), `/api/settings/keys` (desktop only), "Remember my API keys" option | |
+| 1.5 | `desktop/launcher.py`. Features: in-process server on a random port, loading page, WebView2 check with browser fallback and heartbeat, per-user single instance (second launch focuses the open window), confirm-before-quit during a batch, std-stream redirect, truststore. Check modes: `--smoke-test`, `--self-check`, `--window-check`, `--version` | Verified from source on Windows (real window) |
+| 1.6 | Download bridge: `save_from_api` with an allowlist, a native Save dialog, and streaming through a temp file; both export sites use `utils/download.js` | Bridge logic is unit-tested; the dialog itself is not yet clicked through by hand |
+
+### Still to do
+
+**Phase 1 (remaining)**
+- UI for the bridge's helper actions: "Open data folder", "Open logs folder", "Copy diagnostics", and "Show in folder" after a save. The bridge methods exist; there are no buttons yet.
+- Hide the Getting Started **Print** button in desktop mode (`window.print()` does nothing in WKWebView).
+- Replace the "refresh the page" wording in `api/client.js`.
+- Set `useFsAccessApi: false` on the dropzone.
+- Run the launcher from source on macOS: open a real window and click through the Save dialog, the file picker, drag-and-drop, the confirm-before-quit prompt, and a second launch.
+- Exit check: the full workflow with real API keys in the native window on both OSes.
+
+**Phase 2: Packaging (not started)**
+- Real PyInstaller spec, building on the spike's spec, with the permanent bundle ID.
+- Windows Inno Setup installer: per-user and all-users modes, WebView2 bootstrapper, uninstaller that keeps user data.
+- macOS `.dmg`; app icons; pinned per-platform lock files; `scripts/build_desktop.py`.
+- Signing hooks that do nothing until credentials are configured.
+
+**Phase 3: Release pipeline (not started)**
+- Tag-triggered `release.yaml`: version check, builds, frozen smoke test, window check, checksums, provenance attestations, draft GitHub Release.
+- Update notice in the app.
+- Bump the GitHub Actions versions (Node 20 deprecation).
+
+**Phase 4: QA, documentation, beta (not started)**
+- Clean-VM QA matrix, including a standard account, two users at once, and Smart App Control.
+- Install guides with screenshots (unsigned first-run steps).
+- `docs/development/DESKTOP.md`; README install section; beta with digital-humanities users.
+
+### Decisions and open items
+
+- **G2, code signing (decide by mid-December):** the recommendation is an Apple Developer membership before the beta, and a Windows signing decision based on what beta users run. See "Unsigned builds" below.
+- **HEIC support:** `pillow-heif` bundles LGPL/GPL codecs, so a licensing review is needed before adding it.
+- **Import of exports or project folders:** deferred. Today, files dropped into the workspace folder appear in the app.
+- **Delete `desktop/spike-packaging`** once Phase 3's release workflow replaces it.
+
 ## Context
 
 Today Transcribe-HTR runs from source. That means Python 3.10+, `pip install`, Node 22, `npm install`, and two terminals (FastAPI on :8000, Vite on :5173). The target users are digital-humanities researchers with low to intermediate coding experience, so that setup is a barrier.
