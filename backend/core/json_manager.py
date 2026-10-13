@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from app_version import APP_VERSION
 from logging_config import audit_logger, log_error, log_info, log_warning
 from session_workspace import (
     FileIndex,
@@ -130,7 +131,7 @@ def save_transcription_run(
             if root in file_index.records:
                 file_index.records[root].run_count = len(existing_json.get("runs", []))
         else:
-            v2_json = create_v2_json_schema(root=root, image_filename=f"{root}.jpg", app_version="2.0")
+            v2_json = create_v2_json_schema(root=root, image_filename=f"{root}.jpg", app_version=APP_VERSION)
             append_run_to_v2_json(v2_json, run_data)
             if not workspace.ensure_workspace() or not workspace.workspace_path:
                 log_error("No workspace available for saving JSON", root=root)
