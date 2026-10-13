@@ -32,9 +32,6 @@ rapidfuzz>=3.6        # edit-distance backend for consistency analysis (analysis
 jinja2>=3.1.0
 python-docx>=1.2.0  # DOCX export format
 
-# NLP (optional — set SPACY_ENABLED=false to skip loading, saves ~500MB RAM)
-spacy>=3.4.0
-
 # ── Optional extras ──────────────────────────────────────────────────────────
 # soundfile is imported (guarded) by core/audio_utils.py for richer audio
 # metadata. Without it the module falls back to the stdlib `wave` module. It is

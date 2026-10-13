@@ -2,10 +2,6 @@
 
 import os
 
-# Module-level spaCy model cache
-_SPACY_MODEL = None
-_SPACY_LOADED = False
-
 
 def get_client(api_key: str = None):
     """Lazy-load OpenAI client."""
@@ -44,28 +40,6 @@ def get_anthropic_client(api_key: str = None):
     if not key:
         raise RuntimeError("No Anthropic API key provided.")
     return anthropic.Anthropic(api_key=key)
-
-
-def get_spacy_model():
-    """Lazy-load a spaCy model, cached module-level."""
-    global _SPACY_MODEL, _SPACY_LOADED
-    if _SPACY_LOADED:
-        return _SPACY_MODEL
-    _SPACY_LOADED = True
-
-    if os.getenv("SPACY_ENABLED", "true").strip().lower() in ("false", "0", "no"):
-        return None
-    try:
-        import spacy
-    except Exception:
-        return None
-    for name in ("en_core_web_trf", "en_core_web_sm"):
-        try:
-            _SPACY_MODEL = spacy.load(name)
-            return _SPACY_MODEL
-        except Exception:
-            continue
-    return None
 
 
 class _ProfileProxy:

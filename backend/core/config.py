@@ -72,8 +72,6 @@ TEMPLATES_DIR = templates_dir()
 STEP_NAMES = {0: "📤 Input", 1: "📖 Transcribe", 2: "📤 Export"}
 
 VERBALIZE_ENABLED = _os.getenv("VERBALIZE_ENABLED", "true").strip().lower() not in ("false", "0", "no")
-SPACY_ENABLED = _os.getenv("SPACY_ENABLED", "true").strip().lower() not in ("false", "0", "no")
-
 COLORIZATION_OPTIONS = ["Word-level", "Char-level", "Named Entities"]
 
 DEBUG_MODE = False

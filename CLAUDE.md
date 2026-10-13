@@ -30,7 +30,6 @@ OPENAI_API_KEY=sk-...          # pre-fill OpenAI key
 GOOGLE_API_KEY=...             # pre-fill Gemini key
 ANTHROPIC_API_KEY=sk-ant-...   # pre-fill Anthropic (Claude) key
 VERBALIZE_ENABLED=false        # hide TTS tab (default: true; UI also hard-disabled via featureFlags.js)
-SPACY_ENABLED=false            # skip spaCy NER load (saves ~500MB RAM)
 SESSION_SECRET_KEY=...         # signs session cookies (auto-generated if unset)
 MODEL_FALLBACK_ENABLED=false   # disable automatic model/provider fallback (default: true)
 ```
@@ -41,8 +40,10 @@ MODEL_FALLBACK_ENABLED=false   # disable automatic model/provider fallback (defa
 ```bash
 pip install -r backend/requirements.txt        # THE runtime file
 pip install -r requirements-dev.txt            # dev/test tools
-python -m spacy download en_core_web_sm        # optional NER model
 ```
+
+NER is done by the LLM providers (`engines/ner_engine.py`); there is no
+spaCy dependency.
 
 **Frontend:**
 ```bash
@@ -290,7 +291,6 @@ explicitly re-raises 404 for `/api/*` so API typos return JSON, not HTML.
 | `MODEL_FALLBACK_ENABLED` | `true` | Override: `MODEL_FALLBACK_ENABLED=false` |
 | `MAX_FALLBACK_ATTEMPTS` | `4` | Max model/provider fallback attempts |
 | `VERBALIZE_ENABLED` | `true` | Backend flag; TTS tab is also hard-disabled via `frontend/src/featureFlags.js` (`TTS_UI_ENABLED`) |
-| `SPACY_ENABLED` | `true` | Override: `SPACY_ENABLED=false` |
 | `TTS_DEFAULT_MODEL` | `"tts-1"` | Standard quality TTS |
 | `TTS_DEFAULT_VOICE` | `"onyx"` | Dramatic male voice |
 | `LOG_RETENTION_DAYS` | `30` | Log files in `logs/` |
@@ -329,9 +329,6 @@ Two invariants hold wherever it runs:
 - **A single worker.** `dependencies.py` holds sessions in a process-local dict,
   so more than one worker (or any load balancing without sticky routing) will
   reject roughly half of all requests.
-
-`SPACY_ENABLED=false` is worth setting on memory-constrained hosts — the spaCy
-NER model costs ~500 MB and will OOM in 512 MB.
 
 ---
 

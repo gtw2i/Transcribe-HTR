@@ -87,7 +87,6 @@ conda create -n transcribe-htr python=3.11        # or: python -m venv .venv
 conda activate transcribe-htr
 
 pip install -r backend/requirements.txt
-python -m spacy download en_core_web_sm       # optional — enables NER
 
 cd backend
 python run.py                                 # → http://localhost:8000
@@ -143,7 +142,6 @@ All environment variables are optional. See [.env.example](.env.example).
 | `GOOGLE_API_KEY` | — | Pre-fill the Gemini key |
 | `ANTHROPIC_API_KEY` | — | Pre-fill the Anthropic key |
 | `SESSION_SECRET_KEY` | random per start | Signs the session cookie. **Set this in any deployment** — otherwise every restart invalidates all sessions |
-| `SPACY_ENABLED` | `true` | Set `false` to skip loading the spaCy NER model (saves ~500 MB RAM) |
 | `MODEL_FALLBACK_ENABLED` | `true` | Set `false` to disable automatic model/provider fallback |
 | `VERBALIZE_ENABLED` | `true` | Backend text-to-speech flag. The TTS UI is separately hard-disabled in [`frontend/src/featureFlags.js`](frontend/src/featureFlags.js) |
 
