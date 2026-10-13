@@ -588,11 +588,27 @@ class SessionWorkspace:
         return result
 
     def cleanup_session(self) -> None:
-        if self.workspace_path and self.workspace_path.exists():
-            try:
-                shutil.rmtree(self.workspace_path.parent)
-            except Exception as e:
-                logger.warning(f"Failed to cleanup session workspace: {e}")
+        """Delete this session's directory, <base_root>/sessions/<session_id>.
+
+        Refuses anything else: the workspace's parent is only a disposable
+        session directory for the default temp layout, and a workspace placed
+        elsewhere (e.g. a persistent one in the user's data directory) must
+        never be deleted by this.
+        """
+        if not self.workspace_path or not self.workspace_path.exists():
+            return
+        sessions_root = (self.base_root / "sessions").resolve()
+        session_dir = (sessions_root / self.session_id).resolve()
+        if (
+            sessions_root not in session_dir.parents
+            or self.workspace_path.resolve().parent != session_dir
+        ):
+            logger.warning("Refusing to clean up a workspace outside the session root.")
+            return
+        try:
+            shutil.rmtree(session_dir)
+        except Exception as e:
+            logger.warning(f"Failed to cleanup session workspace: {e}")
 
     def get_workspace_info(self) -> Dict[str, Any]:
         return {
