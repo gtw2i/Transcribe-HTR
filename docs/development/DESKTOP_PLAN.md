@@ -170,6 +170,38 @@ Each phase has exit criteria; don't start the next until they are met.
   - Bundle size is recorded (expected 150–250 MB).
 - Write the findings into `DESKTOP_PLAN.md`.
 
+#### Spike results (2026-10-13): **G1 = GO**
+
+The spike was built on branch `desktop/spike-packaging` with `spike/launcher_spike.py` and `spike/spike.spec`. It used PyInstaller 6.22.3 and pywebview 6.2.1 (pythonnet 3.2.1 on Windows, pyobjc 12.2.2 on macOS). The frozen builds were exercised in three modes:
+
+- `--smoke-test`: serves the API and the SPA.
+- `--self-check`: TLS/certifi, the OpenAI, Anthropic and Gemini SDKs, matplotlib figure render, DOCX export, TIFF conversion.
+- `--window-check`: opens the real webview, checks that the SPA renders, that its session init reaches the backend (so cookies on `127.0.0.1` work), that it is a secure context, and that the clipboard API is present.
+
+| | Windows (CI, python.org 3.11) | Windows (local, conda 3.11) | macOS 14 arm64 (CI) |
+|---|---|---|---|
+| Smoke / self-check / window check | ✅ / ✅ / ✅ | ✅ / ✅ / ✅ | ✅ / ✅ / ✅ |
+| Engine | WebView2, Edge 153 | WebView2, Edge 155 | WKWebView (AppleWebKit 605.1.15) |
+| Onedir size | 125 MB | 130 MB | 107 MB (`.app`) |
+| Backend ready (smoke) | 1.6 s | 2.2 s (6.4 s wall time on first, antivirus-scanned launch) | 2.0 s |
+| Window showing the SPA | 10.2 s (CI) | 5.7 s | 9.2 s (CI) |
+| PyInstaller build | 100 s | 50 s | 58 s |
+
+**Findings that feed Phase 1/2**
+
+- **Size** is well under the 150–250 MB estimate, thanks to removing spaCy.
+- **Imports:**
+  - The flat-import layout freezes cleanly with search paths `backend`, `backend/core` and `backend/engines`.
+  - Every module in those directories is listed as a hidden import, plus `collect_submodules` for the packages and for uvicorn.
+  - matplotlib is not loaded at startup.
+- **Windowed builds** have `sys.stdout`/`stderr` set to `None`. The launcher must redirect them to a log file before uvicorn starts (verified working). Use `log_config=None` with uvicorn.
+- **Port allocation:** bind a socket to port 0 and pass it to `uvicorn.Server.run(sockets=[...])`. This works on both OSes with no port race.
+- **macOS signing:** PyInstaller ad-hoc signs the bundle (`Signature=adhoc`, arm64 thin). `codesign --verify --deep --strict` passes, so the "unsigned" macOS build path is confirmed.
+- **Conda Python** needs `<env>\Library\bin` on PATH while building. Otherwise OpenSSL, libffi and others are silently left out, and the frozen app could not make HTTPS calls. Release builds use python.org Python in CI, so this only affects local builds. It is documented for developers.
+- **matplotlib** builds a font cache on first figure render. The launcher must set `MPLCONFIGDIR` to the cache directory; otherwise the cache goes to `~/.matplotlib`.
+- **CI maintenance:** GitHub warns that the v4/v5 actions run on a deprecated Node 20. Bump the action versions in Phase 3.
+- **Still to verify by hand** (Phase 4 QA; not automatable in the spike): the native file-open dialog, drag-and-drop from Explorer/Finder, and downloads. Downloads get their own bridge in Phase 1.6.
+
 ### Phase 1: Desktop runtime
 
 1. **Persistent single-user workspace.** Enabled by `TRANSCRIBE_HTR_PERSISTENT_WORKSPACE`, which is separate from the security flag so the Vite dev setup still works.
