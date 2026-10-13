@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Import config for logging settings
+from app_paths import user_log_dir
 from config import DEBUG_MODE, LOG_FORCE_FLUSH
 
 # =========================
@@ -26,7 +27,9 @@ LOG_TO_FILE = os.getenv("TRANSCRIBE_HTR_LOG_TO_FILE", "true").lower() == "true"
 LOG_TO_CONSOLE = (
     os.getenv("TRANSCRIBE_HTR_LOG_TO_CONSOLE", "false").lower() == "true"
 )
-LOG_DIRECTORY = Path(os.getenv("TRANSCRIBE_HTR_LOG_DIR", "logs"))
+# Per-user log directory (override: TRANSCRIBE_HTR_LOG_DIR). Never relative to
+# the working directory: a Finder-launched macOS app runs with cwd=/.
+LOG_DIRECTORY = user_log_dir()
 LOG_FORCE_FLUSH_ENV = (
     os.getenv("TRANSCRIBE_HTR_LOG_FORCE_FLUSH", str(LOG_FORCE_FLUSH)).lower()
     == "true"
@@ -37,9 +40,13 @@ if DEBUG_MODE:
     LOG_LEVEL = "DEBUG"
     LOG_TO_CONSOLE = True
 
-# Create logs directory if it doesn't exist
+# Create logs directory if it doesn't exist. An unwritable location must not
+# stop the app from starting; setup_logger() then falls back to no file handler.
 if LOG_TO_FILE:
-    LOG_DIRECTORY.mkdir(exist_ok=True)
+    try:
+        LOG_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        print(f"Warning: Could not create log directory {LOG_DIRECTORY}: {e}", file=sys.stderr)
 
 
 # =========================

@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
+from app_paths import frontend_dist_dir
 from routers import (
     colorize,
     consistency,
@@ -81,11 +82,11 @@ def health():
 # the catch-all below would otherwise shadow every /api/* router above.
 #
 # FRONTEND_DIST overrides the build location; it defaults to
-# <repo>/frontend/dist, so `npm run build` followed by `python run.py` serves the
-# built SPA from the backend too. When no build exists the whole block is
-# skipped and the dev workflow (Vite on :5173 proxying /api to :8000) is
-# unaffected.
-_FRONTEND_DIST = Path(os.getenv("FRONTEND_DIST") or (_BACKEND.parent / "frontend" / "dist"))
+# <repo>/frontend/dist (or its mirror in the frozen bundle), so `npm run build`
+# followed by `python run.py` serves the built SPA from the backend too. When
+# no build exists the whole block is skipped and the dev workflow (Vite on
+# :5173 proxying /api to :8000) is unaffected.
+_FRONTEND_DIST = frontend_dist_dir()
 
 if _FRONTEND_DIST.is_dir():
     # Hashed, immutable build artefacts.

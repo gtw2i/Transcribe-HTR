@@ -14,6 +14,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, RGBColor
 
+from app_paths import tts_cache_dir as default_tts_cache_dir
 from config import TEMPLATES_DIR
 from logging_config import log_warning
 
@@ -568,7 +569,7 @@ def collect_audio_files(workspace, tts_cache_dir: Optional[Path] = None) -> List
 
     audio_files = []
 
-    cache_dir = tts_cache_dir or Path("tmp/audio")
+    cache_dir = tts_cache_dir or default_tts_cache_dir()
     if cache_dir.exists():
         for wav_file in cache_dir.glob("*.wav"):
             metadata_file = wav_file.with_suffix(".json")

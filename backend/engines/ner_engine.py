@@ -5,10 +5,10 @@ pass if the first pass returns invalid JSON."""
 
 import copy
 import json
-import pathlib
 import re
 from typing import Any, Optional
 
+from app_paths import entity_schema_path
 from config import PROVIDER_ANTHROPIC, PROVIDER_GEMINI
 from core.retry_utils import classify_error, with_retry
 from core.schema_utils import to_anthropic_tool_schema, to_openai_strict_schema
@@ -16,9 +16,9 @@ from fallback import build_model_chain, retry_kwargs_for, run_with_fallback
 from providers import run_pass1_anthropic, run_pass1_openai, run_pass2_anthropic, run_pass2_openai
 from resource_loaders import get_anthropic_client, get_client
 
-# Schema lives at <project_root>/entity-data/entity_schema_v2.json
-# Path: backend/engines/ -> backend/ -> project_root/
-_SCHEMA_PATH = pathlib.Path(__file__).parent.parent.parent / "entity-data" / "entity_schema_v2.json"
+# Schema lives at <project_root>/entity-data/entity_schema_v2.json (mirrored in
+# the frozen bundle)
+_SCHEMA_PATH = entity_schema_path()
 _ENTITY_SCHEMA: dict = json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
 
 

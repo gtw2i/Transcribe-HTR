@@ -10,6 +10,7 @@ This module provides:
 
 import io
 import json
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -17,6 +18,18 @@ from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, Mock
 
 import pytest
+
+# Keep the suite out of the real per-user directories (backend/core/app_paths):
+# logs, data and cache for the whole run go to one throwaway directory. This
+# runs before any backend module is imported, which matters because
+# logging_config resolves its directory at import time.
+_USER_DIRS_ROOT = Path(tempfile.mkdtemp(prefix="transcribe_htr_userdirs_"))
+for _var, _sub in (
+    ("TRANSCRIBE_HTR_DATA_DIR", "data"),
+    ("TRANSCRIBE_HTR_LOG_DIR", "logs"),
+    ("TRANSCRIBE_HTR_CACHE_DIR", "cache"),
+):
+    os.environ[_var] = str(_USER_DIRS_ROOT / _sub)
 
 # Test configuration constants
 TEST_TTS_MODELS = ["tts-1", "tts-1-hd"]
@@ -296,6 +309,11 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "file_operations: marks tests that perform file system operations"
     )
+
+
+def pytest_unconfigure(config):
+    # Best effort: open log handlers can hold files on Windows.
+    shutil.rmtree(_USER_DIRS_ROOT, ignore_errors=True)
 
 
 def pytest_collection_modifyitems(config, items):

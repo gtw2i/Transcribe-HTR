@@ -20,6 +20,7 @@ anthropic>=0.109.0
 pillow>=8.0.0
 
 # Data / utilities
+platformdirs>=4.0     # per-user data/log/cache locations (core/app_paths.py)
 pyyaml>=6.0
 python-slugify>=8.0
 numpy>=1.21.0

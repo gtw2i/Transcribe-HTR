@@ -15,6 +15,7 @@ from openai import OpenAI
 
 # Import configuration
 import config
+from app_paths import tts_cache_dir
 from core.retry_utils import classify_error, with_retry
 from fallback import retry_kwargs_for, run_with_fallback
 
@@ -45,7 +46,7 @@ class TTSEngine:
         """
         self.api_key = api_key
         self.client = None
-        self.cache_dir = Path("tmp/audio")
+        self.cache_dir = tts_cache_dir()
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize OpenAI client if API key provided

@@ -1,9 +1,9 @@
 # config.py — backend copy
-# PROFILES_DIR points to backend/profiles/ (one level up from core/)
 """Configuration constants for the Transcribe backend."""
 
-from pathlib import Path
 import os as _os
+
+from app_paths import bundled_profiles_dir, templates_dir
 
 # Image processing
 SUPPORTED_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"]
@@ -63,14 +63,11 @@ TTS_MODEL_FALLBACK_ORDER = ["tts-1", "tts-1-hd"]  # keys of TTS_MODELS
 MAX_COMPLETION_TOKENS_GEMINI = 40000
 MAX_N_RESPONSES = 5
 
-WORKSPACE_PATH = Path.cwd()
-
-# Profiles dir is backend/profiles/ — one level up from core/
-PROFILES_DIR = Path(__file__).parent.parent / "profiles"
+# Bundled (read-only) profiles; user profiles live in app_paths.user_profiles_dir()
+PROFILES_DIR = bundled_profiles_dir()
 ACTIVE_PROFILE = "default_htr"
 
-# Templates dir is backend/templates/ — one level up from core/
-TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+TEMPLATES_DIR = templates_dir()
 
 STEP_NAMES = {0: "📤 Input", 1: "📖 Transcribe", 2: "📤 Export"}
 
@@ -78,9 +75,6 @@ VERBALIZE_ENABLED = _os.getenv("VERBALIZE_ENABLED", "true").strip().lower() not 
 SPACY_ENABLED = _os.getenv("SPACY_ENABLED", "true").strip().lower() not in ("false", "0", "no")
 
 COLORIZATION_OPTIONS = ["Word-level", "Char-level", "Named Entities"]
-
-TTL_HOURS = 24
-MAX_WORKSPACES = 100
 
 DEBUG_MODE = False
 
