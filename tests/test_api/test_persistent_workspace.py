@@ -7,6 +7,7 @@ session store, and pin that web mode (the default) is unchanged.
 
 import io
 import json
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -107,6 +108,36 @@ class TestPersistentMode:
         assert first["roots"] == ["page"]
         assert second["roots"] == ["page-1"]
         assert _roots(client) == ["page", "page-1"]
+
+
+class TestRemoveDocument:
+    def test_moves_every_file_of_the_document_to_trash(self, persistent):
+        client = _client()
+        client.post("/api/session/init")
+        client.post("/api/upload", files=[("files", ("a.png", _png())), ("files", ("b.png", _png()))])
+        ws = persistent / "workspace"
+        (ws / "a.transcription.json").write_text('{"runs": []}', encoding="utf-8")
+        (ws / "a.json").write_text('{"transcriptions": []}', encoding="utf-8")  # legacy
+
+        body = client.delete("/api/files/a").json()
+
+        assert body["moved"] == ["a.json", "a.png", "a.transcription.json"]
+        assert all((Path(body["trash"]) / n).exists() for n in body["moved"])
+        assert _roots(client) == ["b"]
+        assert (ws / "b.png").exists()
+
+    def test_removed_document_does_not_come_back_on_rescan(self, persistent):
+        client = _client()
+        client.post("/api/session/init")
+        client.post("/api/upload", files=[("files", ("a.png", _png()))])
+        client.delete("/api/files/a")
+        client.post("/api/session/init")
+        assert _roots(client) == []
+
+    def test_unknown_document_is_not_found(self, persistent):
+        client = _client()
+        client.post("/api/session/init")
+        assert client.delete("/api/files/nope").status_code == 404
 
 
 class TestWebModeUnchanged:

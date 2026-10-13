@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { uploadFiles } from '../../api/files.js'
+import { removeDocument, uploadFiles } from '../../api/files.js'
 import { useRoots } from '../../hooks/useRoots.js'
 import { useImage } from '../../hooks/useImage.js'
 import { useModelList } from '../../hooks/useModelList.js'
@@ -22,12 +22,6 @@ const ACCEPTED_TYPES = {
 }
 
 const PROVIDERS = ['Gemini', 'OpenAI', 'Anthropic']
-
-const DEFAULT_MODELS = {
-  Gemini: ['gemini-3.1-pro-preview', 'gemini-3-pro-preview', 'gemini-3-flash-preview', 'gemini-2.5-pro', 'gemini-2.5-flash'],
-  OpenAI: ['gpt-5.5', 'gpt-5', 'gpt-4o', 'gpt-4o-mini'],
-  Anthropic: ['claude-opus-4-5', 'claude-sonnet-4-5', 'claude-haiku-4-5'],
-}
 
 const SUBSECTION_HEADING = {
   fontWeight: 700,
@@ -201,11 +195,40 @@ function UploadSummary({ result }) {
   )
 }
 
-function ThumbnailCard({ root, runCount, onView }) {
+// Two-step inline confirm: native confirm() dialogs are not reliable in every
+// embedded webview the desktop app runs in.
+function RemoveButton({ root, onRemove, removing }) {
+  const [armed, setArmed] = useState(false)
+  const stop = (fn) => (e) => { e.stopPropagation(); fn() }
+
+  if (removing) return <span className="thumbnail-card__remove">Removing…</span>
+  return armed ? (
+    <span className="thumbnail-card__remove" onClick={(e) => e.stopPropagation()}>
+      <button type="button" className="btn btn-sm btn-danger" onClick={stop(() => onRemove(root))}>
+        Remove
+      </button>
+      <button type="button" className="btn btn-sm btn-ghost" onClick={stop(() => setArmed(false))}>
+        Keep
+      </button>
+    </span>
+  ) : (
+    <button
+      type="button"
+      className="thumbnail-card__remove btn btn-sm btn-ghost"
+      title="Remove this document (moved to the workspace trash folder)"
+      onClick={stop(() => setArmed(true))}
+    >
+      ✕
+    </button>
+  )
+}
+
+function ThumbnailCard({ root, runCount, onView, onRemove, removing }) {
   const { data, isLoading } = useImage(root)
 
   return (
     <div className="thumbnail-card" onClick={() => onView(root)}>
+      <RemoveButton root={root} onRemove={onRemove} removing={removing} />
       <div className="thumbnail-card__img-wrap">
         {isLoading ? (
           <div className="thumbnail-card__skeleton" />
@@ -228,7 +251,7 @@ function ThumbnailCard({ root, runCount, onView }) {
   )
 }
 
-function ThumbnailGrid({ roots, onView }) {
+function ThumbnailGrid({ roots, onView, onRemove, removingRoot }) {
   if (!roots || roots.length === 0) return null
 
   return (
@@ -236,7 +259,14 @@ function ThumbnailGrid({ roots, onView }) {
       <div className="section-title">Documents ({roots.length})</div>
       <div className="thumbnail-grid">
         {roots.map((r) => (
-          <ThumbnailCard key={r.root} root={r.root} runCount={r.run_count} onView={onView} />
+          <ThumbnailCard
+            key={r.root}
+            root={r.root}
+            runCount={r.run_count}
+            onView={onView}
+            onRemove={onRemove}
+            removing={removingRoot === r.root}
+          />
         ))}
       </div>
     </div>
@@ -259,6 +289,16 @@ export function UploadTab() {
       queryClient.invalidateQueries({ queryKey: ['roots'] })
     },
     onError: (err) => setError(err.message, 'Upload'),
+  })
+
+  const activeRoot = useAppStore((s) => s.activeRoot)
+  const removeMutation = useMutation({
+    mutationFn: removeDocument,
+    onSuccess: (_data, root) => {
+      if (activeRoot === root) setActiveRoot('')
+      queryClient.invalidateQueries({ queryKey: ['roots'] })
+    },
+    onError: (err) => setError(err.message, 'Remove document'),
   })
 
   const handleView = (root) => {
@@ -286,7 +326,12 @@ export function UploadTab() {
       {rootsLoading ? (
         <Spinner label="Loading documents…" />
       ) : (
-        <ThumbnailGrid roots={roots} onView={handleView} />
+        <ThumbnailGrid
+          roots={roots}
+          onView={handleView}
+          onRemove={(root) => removeMutation.mutate(root)}
+          removingRoot={removeMutation.isPending ? removeMutation.variables : null}
+        />
       )}
     </div>
   )

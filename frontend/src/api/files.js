@@ -20,6 +20,12 @@ export async function getSummary(root) {
   return res.data
 }
 
+// Moves the document's files into the workspace trash folder (not deleted).
+export async function removeDocument(root) {
+  const res = await api.delete(`/files/${encodeURIComponent(root)}`)
+  return res.data
+}
+
 export async function uploadFiles(files) {
   const form = new FormData()
   for (const file of files) {

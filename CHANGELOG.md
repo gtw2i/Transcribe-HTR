@@ -25,6 +25,11 @@ Work toward a turnkey Windows/macOS desktop app. See
   - Files placed in the folder appear on the next load.
   - Re-uploading a file name creates a new document (`page-1`) instead of
     replacing the existing one.
+- **Remove document** (✕ on each card in the Upload tab;
+  `DELETE /api/files/{root}`). The document's files are moved to
+  `<workspace>/trash/<timestamp>/`, not deleted outright.
+- Document JSON, uploads and user profiles are written atomically, so a crash
+  mid-save cannot corrupt them.
 
 ### Changed
 - **Logs** moved from `./logs` (relative to wherever the server started) to the

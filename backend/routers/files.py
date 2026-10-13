@@ -1,6 +1,8 @@
 """File listing and image retrieval."""
 
 import base64
+import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
@@ -25,6 +27,35 @@ def list_roots(file_index=Depends(get_file_index)):
         }
         for r in roots
     ]
+
+
+def _root_of(filename: str) -> str:
+    """Document root for a workspace filename (mirrors FileIndex.register_file)."""
+    if filename.endswith(".transcription.json"):
+        return filename[: -len(".transcription.json")]
+    return Path(filename).stem
+
+
+@router.delete("/files/{root}")
+def remove_document(root: str, workspace=Depends(get_workspace), file_index=Depends(get_file_index)):
+    """Move every file of a document into <workspace>/trash/<timestamp>/.
+
+    Nothing is deleted outright: the trash folder is the undo. All files whose
+    root matches are moved (image, canonical and legacy JSON, audio), so a
+    later rescan of the workspace cannot bring the document back.
+    """
+    if root not in file_index.records:
+        raise HTTPException(status_code=404, detail=f"Root '{root}' not found.")
+    ws_path = Path(workspace.workspace_path)
+    trash = ws_path / "trash" / datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    moved = []
+    for path in ws_path.iterdir():
+        if path.is_file() and not path.name.startswith(".") and _root_of(path.name) == root:
+            trash.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(path), str(trash / path.name))
+            moved.append(path.name)
+    del file_index.records[root]
+    return {"root": root, "moved": sorted(moved), "trash": str(trash) if moved else None}
 
 
 @router.get("/files/{root}/image")
