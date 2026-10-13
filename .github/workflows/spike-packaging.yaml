@@ -1,5 +1,6 @@
 # THROWAWAY Phase 0.5 packaging spike. Lives only on desktop/spike-packaging;
-# replaced by the real release workflow in Phase 3.
+# replaced by the real release workflow in Phase 3. Results are emitted as
+# ::notice annotations so they can be read without log access.
 name: Spike packaging
 
 on:
@@ -37,49 +38,63 @@ jobs:
         pip install -r backend/requirements.txt pyinstaller pywebview
 
     - name: Versions
-      run: pip list --format=freeze | grep -iE "^(pyinstaller|pywebview|pyobjc-core|pythonnet|uvicorn)="
       shell: bash
+      run: echo "::notice title=versions ${{ runner.os }}::$(pip list --format=freeze | grep -iE '^(pyinstaller|pywebview|pyobjc-core|pythonnet|uvicorn)=' | tr '\n' ' ')"
 
     - name: PyInstaller
-      run: pyinstaller spike/spike.spec --noconfirm --log-level WARN
-      shell: bash
-
-    - name: Size
       shell: bash
       run: |
-        du -sh dist/Transcribe-HTR* || true
-        if [ -d dist/Transcribe-HTR.app ]; then
-          codesign -dv dist/Transcribe-HTR.app 2>&1 | head -5 || true
-          codesign --verify --deep --strict dist/Transcribe-HTR.app && echo "codesign verify: OK"
-        fi
+        start=$(date +%s)
+        pyinstaller spike/spike.spec --noconfirm --log-level WARN
+        echo "::notice title=build ${{ runner.os }}::$(( $(date +%s) - start ))s; size $(du -sh dist/Transcribe-HTR* | tr '\n' ' ')"
 
-    - name: Frozen smoke + self-check (macOS)
+    - name: Codesign (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        sig=$(codesign -dv dist/Transcribe-HTR.app 2>&1 | grep -E 'Signature|Identifier|Format' | tr '\n' ' ')
+        if codesign --verify --deep --strict dist/Transcribe-HTR.app; then v=OK; else v=FAIL; fi
+        echo "::notice title=codesign::verify=$v; $sig"
+
+    - name: Frozen checks (macOS)
       if: runner.os == 'macOS'
       shell: bash
       working-directory: /
       run: |
         BIN="$GITHUB_WORKSPACE/dist/Transcribe-HTR.app/Contents/MacOS/Transcribe-HTR"
-        "$BIN" --smoke-test
-        "$BIN" --self-check
+        rc=0
+        for mode in --smoke-test --self-check; do
+          out=$("$BIN" $mode 2>&1) || rc=1
+          echo "$out"
+          echo "::notice title=macOS $mode::$(echo "$out" | grep -E 'SMOKE|SELFCHECK' | tail -1)"
+        done
+        exit $rc
 
-    - name: Frozen smoke + self-check (Windows)
+    - name: Frozen checks (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
       working-directory: C:\
       run: |
         $exe = "$env:GITHUB_WORKSPACE\dist\Transcribe-HTR\Transcribe-HTR.exe"
+        $rc = 0
         foreach ($mode in "--smoke-test", "--self-check") {
           $p = Start-Process -FilePath $exe -ArgumentList $mode -PassThru -Wait
-          Get-Content "$env:TEMP\transcribe_htr_spike.log" -Tail 2
-          if ($p.ExitCode -ne 0) { exit 1 }
+          $line = Get-Content "$env:TEMP\transcribe_htr_spike.log" -Tail 1
+          Write-Output "::notice title=Windows $mode::exit=$($p.ExitCode) $line"
+          if ($p.ExitCode -ne 0) { $rc = 1 }
         }
+        exit $rc
 
     - name: Window check (macOS)
       if: runner.os == 'macOS'
       continue-on-error: true
       timeout-minutes: 3
       shell: bash
-      run: dist/Transcribe-HTR.app/Contents/MacOS/Transcribe-HTR --window-check
+      run: |
+        out=$(dist/Transcribe-HTR.app/Contents/MacOS/Transcribe-HTR --window-check 2>&1); rc=$?
+        echo "$out"
+        echo "::notice title=macOS window::exit=$rc $(echo "$out" | grep -E 'WINDOWCHECK|Error|error' | tail -2 | tr '\n' ' ')"
+        exit $rc
 
     - name: Window check (Windows)
       if: runner.os == 'Windows'
@@ -88,7 +103,8 @@ jobs:
       shell: pwsh
       run: |
         $p = Start-Process -FilePath "dist\Transcribe-HTR\Transcribe-HTR.exe" -ArgumentList "--window-check" -PassThru -Wait
-        Get-Content "$env:TEMP\transcribe_htr_spike.log" -Tail 2
+        $line = Get-Content "$env:TEMP\transcribe_htr_spike.log" -Tail 1
+        Write-Output "::notice title=Windows window::exit=$($p.ExitCode) $line"
         exit $p.ExitCode
 
     - name: Archive app (macOS)
