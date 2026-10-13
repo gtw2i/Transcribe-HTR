@@ -1,0 +1,107 @@
+# THROWAWAY Phase 0.5 packaging spike. Lives only on desktop/spike-packaging;
+# replaced by the real release workflow in Phase 3.
+name: Spike packaging
+
+on:
+  push:
+    branches: [desktop/spike-packaging]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Build frontend
+      working-directory: frontend
+      run: npm ci && npm run build
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt pyinstaller pywebview
+
+    - name: Versions
+      run: pip list --format=freeze | grep -iE "^(pyinstaller|pywebview|pyobjc-core|pythonnet|uvicorn)="
+      shell: bash
+
+    - name: PyInstaller
+      run: pyinstaller spike/spike.spec --noconfirm --log-level WARN
+      shell: bash
+
+    - name: Size
+      shell: bash
+      run: |
+        du -sh dist/Transcribe-HTR* || true
+        if [ -d dist/Transcribe-HTR.app ]; then
+          codesign -dv dist/Transcribe-HTR.app 2>&1 | head -5 || true
+          codesign --verify --deep --strict dist/Transcribe-HTR.app && echo "codesign verify: OK"
+        fi
+
+    - name: Frozen smoke + self-check (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      working-directory: /
+      run: |
+        BIN="$GITHUB_WORKSPACE/dist/Transcribe-HTR.app/Contents/MacOS/Transcribe-HTR"
+        "$BIN" --smoke-test
+        "$BIN" --self-check
+
+    - name: Frozen smoke + self-check (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      working-directory: C:\
+      run: |
+        $exe = "$env:GITHUB_WORKSPACE\dist\Transcribe-HTR\Transcribe-HTR.exe"
+        foreach ($mode in "--smoke-test", "--self-check") {
+          $p = Start-Process -FilePath $exe -ArgumentList $mode -PassThru -Wait
+          Get-Content "$env:TEMP\transcribe_htr_spike.log" -Tail 2
+          if ($p.ExitCode -ne 0) { exit 1 }
+        }
+
+    - name: Window check (macOS)
+      if: runner.os == 'macOS'
+      continue-on-error: true
+      timeout-minutes: 3
+      shell: bash
+      run: dist/Transcribe-HTR.app/Contents/MacOS/Transcribe-HTR --window-check
+
+    - name: Window check (Windows)
+      if: runner.os == 'Windows'
+      continue-on-error: true
+      timeout-minutes: 3
+      shell: pwsh
+      run: |
+        $p = Start-Process -FilePath "dist\Transcribe-HTR\Transcribe-HTR.exe" -ArgumentList "--window-check" -PassThru -Wait
+        Get-Content "$env:TEMP\transcribe_htr_spike.log" -Tail 2
+        exit $p.ExitCode
+
+    - name: Archive app (macOS)
+      if: runner.os == 'macOS'
+      run: ditto -c -k --keepParent dist/Transcribe-HTR.app Transcribe-HTR-spike-macos-arm64.zip
+
+    - name: Archive app (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: Compress-Archive -Path dist\Transcribe-HTR -DestinationPath Transcribe-HTR-spike-windows.zip
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: spike-${{ matrix.os }}
+        path: Transcribe-HTR-spike-*.zip
+        retention-days: 7
