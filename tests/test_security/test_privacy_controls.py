@@ -88,3 +88,19 @@ def test_log_formatter_should_redact_sensitive_keys():
     assert "secret-token" not in msg
 
 
+@pytest.mark.parametrize(
+    "key",
+    [
+        "anthropic_api_key",
+        "api_key",
+        "harmonization_api_key",
+        "OPENAI_API_KEY",
+        "session_secret_key",
+        "launch_token",
+    ],
+)
+def test_log_formatter_redacts_every_key_like_field(key):
+    msg = lc._format_message("event", {key: "the-secret-value"})
+    assert "the-secret-value" not in msg
+    assert f"{key}=[REDACTED]" in msg
+

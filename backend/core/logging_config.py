@@ -170,14 +170,22 @@ def log_exception(message: str, **kwargs):
     _flush_handlers(_default_logger)
 
 
-_SENSITIVE_KEYS = frozenset({"openai_api_key", "gemini_api_key", "token", "password"})
+# Matched as substrings of the lowercased key, so every provider's key field
+# (openai_api_key, anthropic_api_key, harmonization_api_key, api_key, ...) is
+# covered without listing each one.
+_SENSITIVE_KEY_PARTS = ("api_key", "apikey", "secret", "token", "password")
+
+
+def _is_sensitive(key: str) -> bool:
+    k = str(key).lower()
+    return any(part in k for part in _SENSITIVE_KEY_PARTS)
 
 
 def _format_message(message: str, kwargs: Dict[str, Any]) -> str:
     """Format log message with additional context. Sensitive keys are redacted."""
     if kwargs:
         parts = [
-            f"{k}=[REDACTED]" if k in _SENSITIVE_KEYS else f"{k}={v}"
+            f"{k}=[REDACTED]" if _is_sensitive(k) else f"{k}={v}"
             for k, v in kwargs.items()
         ]
         return f"{message} | {' | '.join(parts)}"
