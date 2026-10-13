@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { exportAll } from '../../api/export.js'
+import { downloadFromApi } from '../../utils/download.js'
 import { generateTts } from '../../api/tts.js'
 import { TTS_UI_ENABLED } from '../../featureFlags.js'
 import { useAppStore } from '../../store/appStore.js'
@@ -34,17 +34,7 @@ function DownloadButton({ label, format, disabled }) {
   const handleDownload = async () => {
     setDownloading(true)
     try {
-      const res = await exportAll(format)
-      const url = URL.createObjectURL(res.data)
-      const disposition = res.headers['content-disposition'] || ''
-      const match = disposition.match(/filename="?([^"]+)"?/)
-      const filename = match ? match[1] : `export.${format}`
-      const a = Object.assign(document.createElement('a'), {
-        href: url,
-        download: filename,
-      })
-      a.click()
-      URL.revokeObjectURL(url)
+      await downloadFromApi({ path: '/export', params: { format }, fallbackName: `export.${format}` })
     } catch (err) {
       setError(err.message, 'Export')
     } finally {

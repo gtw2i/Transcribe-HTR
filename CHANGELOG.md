@@ -37,6 +37,13 @@ Work toward a turnkey Windows/macOS desktop app. See
     owner-only file, until the macOS builds are signed.
   - Endpoints: `GET/PUT/DELETE /api/settings/keys` (desktop launch token
     required, otherwise 404) and `GET /api/app-info`.
+- **Desktop launcher** (`desktop/`): runs the backend in-process and shows
+  the UI in a native window (WebView2 / WKWebView), falling back to the
+  browser.
+  - One instance per user: a second launch focuses the open window.
+  - Downloads go through a native Save dialog.
+  - Asks before quitting during a batch.
+  - Check modes: `--smoke-test`, `--self-check`, `--window-check`.
 - **Desktop local-server hardening** (`TRANSCRIBE_HTR_LAUNCH_TOKEN`):
   - Requests need the per-launch token.
   - Foreign `Host` headers are rejected.

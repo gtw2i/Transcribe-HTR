@@ -1,4 +1,5 @@
 import api from './client.js'
+import { downloadFromApi } from '../utils/download.js'
 
 /** Comparison settings the server supports: normalization profiles, tokenizers. */
 export async function getOptions() {
@@ -65,22 +66,11 @@ export async function deleteSaved(root, analysisId) {
  * saved first — a user may only want the CSVs.
  */
 export async function exportBundle(params) {
-  const res = await api.post('/consistency/export', params, {
-    responseType: 'blob',
+  return downloadFromApi({
+    method: 'POST',
+    path: '/consistency/export',
+    body: params,
+    fallbackName: 'consistency_export.zip',
     timeout: 300_000,
   })
-
-  const disposition = res.headers['content-disposition'] ?? ''
-  const match = /filename="?([^";]+)"?/.exec(disposition)
-  const filename = match ? match[1] : 'consistency_export.zip'
-
-  const url = URL.createObjectURL(res.data)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
-  return filename
 }

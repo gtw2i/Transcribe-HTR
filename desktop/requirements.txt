@@ -1,0 +1,4 @@
+# Desktop shell (desktop/launcher.py) — on top of backend/requirements.txt.
+# Pinned per-platform lock files for release builds come in Phase 2.
+pywebview>=6.2,<7     # native window: WebView2 (Windows) / WKWebView (macOS)
+truststore>=0.10      # use the OS certificate store (university TLS inspection)

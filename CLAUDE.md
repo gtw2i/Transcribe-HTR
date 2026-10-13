@@ -18,6 +18,18 @@ python run.py
 # or: python -m uvicorn main:app --reload --port 8000
 ```
 
+**Desktop app from source** (native window; needs a built frontend):
+```bash
+pip install -r desktop/requirements.txt         # pywebview, truststore
+cd frontend && npm run build && cd ..
+python desktop/launcher.py                      # or --smoke-test / --self-check / --window-check
+```
+The launcher (`desktop/launcher.py`) runs uvicorn in-process on a random
+127.0.0.1 port and sets `TRANSCRIBE_HTR_PERSISTENT_WORKSPACE` and a per-launch
+`TRANSCRIBE_HTR_LAUNCH_TOKEN` before importing `main`. `desktop/bridge.py` is
+the `window.pywebview.api` surface (downloads, open folder, diagnostics).
+Plan and status: `docs/development/DESKTOP_PLAN.md`.
+
 **Frontend** (React/Vite, port 5173):
 ```bash
 cd frontend
@@ -167,11 +179,16 @@ backend/
 api/                          # thin axios wrappers per endpoint
   client.js                   # axios instance, baseURL='/api', withCredentials
   transcription.js, ner.js, harmonization.js, summarize.js, colorize.js,
-  files.js, profiles.js, models.js, session.js, tts.js, export.js
+  files.js, profiles.js, models.js, session.js, tts.js, settings.js
+
+utils/download.js             # downloadFromApi(): native Save dialog via the
+                              #   desktop bridge, else blob + <a download>
 
 hooks/                        # react-query hooks
   useRoots.js, useImage.js, useProfiles.js, useModelList.js,
   useSession.js, useJsonData.js, useColorize.js
+  useRememberedKeys.js        # desktop: sync key fields with the secret store
+  useDesktopShell.js          # desktop: busy flag / browser-fallback heartbeat
 
 store/
   appStore.js                 # Zustand — all client state (mirrors ss.* shape)
