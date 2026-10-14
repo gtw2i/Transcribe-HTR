@@ -10,6 +10,7 @@ instead.
     python desktop/launcher.py --self-check  # no window: check bundled deps
     python desktop/launcher.py --window-check  # open, verify the UI loaded, close
     python desktop/launcher.py --version
+    python desktop/launcher.py --forget-keys   # delete remembered API keys (uninstaller)
 
 Desktop behaviour is switched on through environment variables that the
 backend already understands (set here, before the backend is imported):
@@ -75,6 +76,20 @@ def _setup_import_paths() -> None:
     for p in (root, root / "backend", root / "backend" / "core"):
         if str(p) not in sys.path:
             sys.path.insert(0, str(p))
+
+
+def _load_build_info() -> dict:
+    """build_info.json, written by scripts/build_desktop.py and bundled with
+    the app: version, commit, whether it was signed, and environment defaults
+    chosen at build time (e.g. a signed macOS build uses the Keychain). An
+    explicit environment variable still wins. Absent when run from source."""
+    try:
+        info = json.loads((_resource_root() / "build_info.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    for key, value in (info.get("defaults") or {}).items():
+        os.environ.setdefault(key, str(value))
+    return info
 
 
 def _setup_logging(log_dir: Path) -> None:
@@ -391,6 +406,7 @@ def _self_check() -> int:
 
 def main(argv) -> int:
     _setup_import_paths()
+    build_info = _load_build_info()
     from app_paths import user_cache_dir, user_data_dir, user_log_dir, user_workspace_dir
 
     _setup_logging(user_log_dir())
@@ -398,6 +414,15 @@ def main(argv) -> int:
         from app_version import APP_VERSION
 
         print(APP_VERSION)
+        return 0
+    if "--forget-keys" in argv:
+        # Used by the Windows uninstaller when the user removes their data.
+        from secret_store import PROVIDERS, get_secret_store
+
+        store = get_secret_store()
+        for provider in PROVIDERS:
+            store.delete(provider)
+        log.info("Remembered API keys removed (%s).", store.name)
         return 0
 
     window_check = "--window-check" in argv
@@ -443,6 +468,8 @@ def main(argv) -> int:
             folders={"data": user_data_dir(), "workspace": user_workspace_dir(), "logs": user_log_dir()},
             diagnostics=lambda: {
                 "version": APP_VERSION,
+                "build": f"{build_info.get('commit', 'source')} {build_info.get('built', '')}".strip(),
+                "signed": build_info.get("signed", False),
                 "data folder": user_data_dir(),
                 "log folder": user_log_dir(),
                 "frozen": bool(getattr(sys, "frozen", False)),
