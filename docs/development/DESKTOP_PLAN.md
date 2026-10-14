@@ -69,6 +69,8 @@
 
 ### Decisions and open items
 
+- **Decided (2026-10-14): bundle identifier `org.transcribe-htr.app`.** It is neutral rather than tied to one institution, because this is a multi-institutional project. It is permanent: changing it later would break updates and remembered keys on macOS. The Windows installer's AppId GUID is likewise fixed in `packaging/windows/installer.iss`.
+- **App icon:** a generated placeholder (`packaging/icons/make_icons.py`) until someone designs real artwork.
 - **G2, code signing (decide by mid-December):** the recommendation is an Apple Developer membership before the beta, and a Windows signing decision based on what beta users run. See "Unsigned builds" below.
 - **HEIC support:** `pillow-heif` bundles LGPL/GPL codecs, so a licensing review is needed before adding it.
 - **Import of exports or project folders:** deferred. Today, files dropped into the workspace folder appear in the app.
