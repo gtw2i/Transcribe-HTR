@@ -46,14 +46,17 @@ export function DesktopDataCard() {
         <Button variant="ghost" size="sm" onClick={copyDiagnostics}>{copied ? '✅ Copied' : '🩺 Copy diagnostics'}</Button>
       </div>
       {diagnostics && (
-        <textarea
-          className="form-control"
-          readOnly
-          rows={6}
-          value={diagnostics}
-          style={{ marginTop: 'var(--space-2)', fontFamily: 'monospace', fontSize: 'var(--font-size-sm)' }}
-          onFocus={(e) => e.target.select()}
-        />
+        <div style={{ marginTop: 'var(--space-2)' }}>
+          <textarea
+            className="form-control"
+            readOnly
+            rows={6}
+            value={diagnostics}
+            style={{ fontFamily: 'monospace', fontSize: 'var(--font-size-sm)' }}
+            onFocus={(e) => e.target.select()}
+          />
+          <Button variant="ghost" size="sm" onClick={() => setDiagnostics('')}>Hide diagnostics</Button>
+        </div>
       )}
     </div>
   )

@@ -34,15 +34,22 @@
 
 ### Still to do
 
-**Phase 1: hands-on checks (need a person)**
-- **Windows, by hand:**
-  - Click through the native Save dialog and use "Show in folder".
-  - Use the file picker, and drag files from Explorer.
-  - Close during a batch: the confirm prompt should appear.
-  - Launch a second copy: the first window should come to the front.
-  - Tick "Remember my API keys", quit and relaunch: keys and documents should still be there.
-  - Run the full workflow with real API keys.
-- **macOS, by hand:** the same list. Deferred to Phase 4 QA because no Mac is available. CI covers the automated part.
+**Phase 1: hands-on checks**
+- **Windows, done by hand on 2026-10-14:**
+
+  | Check | Result |
+  |---|---|
+  | Document upload | ✅ |
+  | API key entry and remembering | ✅ |
+  | Full workflow with real keys (Gemini) | ✅ |
+  | All exports through the native Save dialog | ✅ |
+  | Confirm prompt when quitting during a batch | ✅ |
+  | Documents persist across restarts | ✅ |
+  | Data card | ✅ |
+
+  - The diagnostics box could not be closed; it now has a "Hide diagnostics" button.
+- **Windows, not yet checked:** a TIFF upload (covered by automated tests) and launching a second copy (covered by the single-instance tests, but not yet watched by hand).
+- **macOS, by hand:** the same list. Deferred to Phase 4 QA because no Mac is available. The CI `desktop` job covers the automated part.
 
 **Phase 2: Packaging (not started)**
 - Real PyInstaller spec, building on the spike's spec, with the permanent bundle ID.
