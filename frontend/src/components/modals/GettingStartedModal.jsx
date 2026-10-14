@@ -4,6 +4,8 @@ import { Button } from '../shared/Button.jsx'
 
 export function GettingStartedModal() {
   const setGettingStartedOpen = useAppStore((s) => s.setGettingStartedOpen)
+  // window.print() does nothing in the macOS desktop webview.
+  const desktop = useAppStore((s) => s.desktop)
   const close = () => setGettingStartedOpen(false)
 
   return (
@@ -13,7 +15,7 @@ export function GettingStartedModal() {
       size="lg"
       footer={
         <>
-          <Button variant="secondary" onClick={() => window.print()}>🖨️ Print</Button>
+          {!desktop && <Button variant="secondary" onClick={() => window.print()}>🖨️ Print</Button>}
           <Button variant="primary" onClick={close}>Close</Button>
         </>
       }
@@ -33,7 +35,13 @@ export function GettingStartedModal() {
             <p>Get a free API key at <strong>aistudio.google.com</strong>. Gemini also supports Named Entity Recognition (NER).</p>
             <h4>OpenAI</h4>
             <p>Get an API key at <strong>platform.openai.com</strong>. Supports transcription with GPT-5 models.</p>
-            <p>Enter keys in the Transcription tab — they are stored in your browser session only and never sent anywhere except the AI APIs.</p>
+            <p>
+              Enter keys in the Upload tab.{' '}
+              {desktop
+                ? 'Tick "Remember my API keys" to keep them on this computer for your user account.'
+                : 'They are kept for this browser session only.'}{' '}
+              Keys are never sent anywhere except the AI APIs.
+            </p>
           </div>
         </details>
 

@@ -1,6 +1,11 @@
+import { useAppStore } from '../../store/appStore.js'
+import { DesktopDataCard } from '../shared/DesktopActions.jsx'
+
 export function StartTab() {
+  const desktop = useAppStore((s) => s.desktop)
   return (
     <div className="section">
+      <DesktopDataCard />
       <div className="card section">
         <h2 style={{ marginBottom: 'var(--space-2)' }}>📝 Transcribe-HTR</h2>
         <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
@@ -18,7 +23,13 @@ export function StartTab() {
           <div className="expander-content">
             <p><strong>Google Gemini (recommended)</strong> — Get a free API key at <strong>aistudio.google.com</strong>. Gemini supports transcription, harmonization, and Named Entity Recognition (NER).</p>
             <p><strong>OpenAI</strong> — Get an API key at <strong>platform.openai.com</strong>. Supports transcription and harmonization.</p>
-            <p>Enter keys in the <strong>Transcription</strong> tab. They are stored in your browser session only and never sent anywhere except the respective AI APIs.</p>
+            <p>
+              Enter keys in the <strong>Upload</strong> tab.{' '}
+              {desktop
+                ? 'Tick "Remember my API keys" to keep them on this computer for your user account.'
+                : 'They are kept for this browser session only.'}{' '}
+              Keys are never sent anywhere except the respective AI APIs.
+            </p>
           </div>
         </details>
 

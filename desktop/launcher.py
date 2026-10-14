@@ -199,7 +199,7 @@ def _webview2_available() -> bool:
     return False
 
 
-def _check_window(window, result: dict) -> None:
+def _check_window(window, bridge, result: dict) -> None:
     """--window-check: confirm the SPA rendered and authenticated, then close."""
     deadline = time.monotonic() + 45
     rendered = False
@@ -215,9 +215,19 @@ def _check_window(window, result: dict) -> None:
             "document.body.innerText.includes('Cannot reach')"
         )),
         bridge=bool(window.evaluate_js("typeof window.pywebview.api.save_from_api === 'function'")),
+        # Desktop-only UI appears once the app knows it is in the desktop shell.
+        # textContent, not innerText: the card title is uppercased by CSS.
+        desktop_ui=bool(window.evaluate_js("document.body.textContent.includes('Your data on this computer')")),
         engine=window.evaluate_js("navigator.userAgent"),
     )
-    result["ok"] = result["rendered"] and result["bridge"] and not result["backend_unreachable_banner"]
+    window.evaluate_js("window.pywebview.api.set_busy(true)")
+    time.sleep(0.5)
+    result["busy_flag_reaches_python"] = bridge._is_busy()
+    bridge.set_busy(False)  # let the window close without asking
+    result["ok"] = (
+        result["rendered"] and result["bridge"] and result["desktop_ui"]
+        and result["busy_flag_reaches_python"] and not result["backend_unreachable_banner"]
+    )
     print("WINDOWCHECK " + json.dumps(result), flush=True)
     window.destroy()
 
@@ -248,7 +258,7 @@ def _run_window(server: Server, auth_url: str, bridge, state: dict, log_dir: Pat
         if server.wait_healthy():
             window.load_url(auth_url)
             if check:
-                _check_window(window, result)
+                _check_window(window, bridge, result)
         else:
             window.load_html(ERROR_HTML.replace("{log_dir}", str(log_dir)))
             if check:
@@ -424,7 +434,8 @@ def main(argv) -> int:
         if "--smoke-test" in argv:
             return _smoke_test(server, token)
 
-        lock.publish(server.port, token)
+        if not check_mode:  # check runs never hand over to / take over from the app
+            lock.publish(server.port, token)
         auth_url = f"{server.base_url}/api/desktop/auth?token={token}"
         bridge = Bridge(
             server.port,

@@ -17,6 +17,9 @@ export const useAppStore = create((set, get) => ({
   desktop: false,
   rememberKeys: true,
   storedKeysLoaded: false,
+  // window.pywebview.api is injected shortly after page load ('pywebviewready').
+  bridgeReady: false,
+  setBridgeReady: () => set({ bridgeReady: true }),
   setAppInfo: (info) => set({ appInfo: info, desktop: !!info?.desktop }),
   setRememberKeys: (v) => set({ rememberKeys: v }),
   loadStoredKeys: (keys) => set({

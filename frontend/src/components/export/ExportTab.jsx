@@ -11,6 +11,7 @@ import { PasswordInput } from '../shared/PasswordInput.jsx'
 import { TextArea } from '../shared/TextArea.jsx'
 import { Alert } from '../shared/Alert.jsx'
 import { FallbackNotice } from '../shared/FallbackNotice.jsx'
+import { SavedFileNotice } from '../shared/DesktopActions.jsx'
 import { InlineSpinner } from '../shared/Spinner.jsx'
 
 const TTS_MODELS = [
@@ -29,12 +30,14 @@ const TTS_VOICES = [
 
 function DownloadButton({ label, format, disabled }) {
   const [downloading, setDownloading] = useState(false)
+  const [saved, setSaved] = useState(null)
   const setError = useAppStore((s) => s.setError)
 
   const handleDownload = async () => {
     setDownloading(true)
+    setSaved(null)
     try {
-      await downloadFromApi({ path: '/export', params: { format }, fallbackName: `export.${format}` })
+      setSaved(await downloadFromApi({ path: '/export', params: { format }, fallbackName: `export.${format}` }))
     } catch (err) {
       setError(err.message, 'Export')
     } finally {
@@ -43,9 +46,12 @@ function DownloadButton({ label, format, disabled }) {
   }
 
   return (
-    <Button variant="secondary" onClick={handleDownload} disabled={downloading || disabled}>
-      {downloading ? <><InlineSpinner /> Preparing…</> : label}
-    </Button>
+    <div>
+      <Button variant="secondary" onClick={handleDownload} disabled={downloading || disabled}>
+        {downloading ? <><InlineSpinner /> Preparing…</> : label}
+      </Button>
+      <SavedFileNotice result={saved} />
+    </div>
   )
 }
 

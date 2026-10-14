@@ -167,6 +167,9 @@ function FileDropzone({ onUpload, uploading }) {
     onDrop,
     accept: ACCEPTED_TYPES,
     multiple: true,
+    // Same plain <input type=file> path in every browser and in both desktop
+    // webviews (the File System Access API is Chromium-only).
+    useFsAccessApi: false,
   })
 
   const style = {

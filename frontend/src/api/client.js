@@ -12,7 +12,9 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       // Lazy import to avoid circular dep
       import('../store/appStore.js').then(({ useAppStore }) => {
-        useAppStore.getState().setError('Your session has expired. Refresh the page to start a new session.', 'Session')
+        // The desktop app has one persistent session and never gets a 401;
+        // this only happens in web mode, after a server restart.
+        useAppStore.getState().setError('Your session has expired. Reload the page to start a new session.', 'Session')
       })
     }
     return Promise.reject(err)

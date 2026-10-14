@@ -47,6 +47,7 @@ class SingleInstance:
         # Written beside the lock file: on Windows the locked byte range of the
         # lock file cannot be read by another process.
         info = self.lock_path.with_suffix(".json")
+        info.parent.mkdir(parents=True, exist_ok=True)
         info.write_text(json.dumps({"port": port, "token": token, "pid": os.getpid()}), encoding="utf-8")
         if os.name == "posix":
             os.chmod(info, 0o600)

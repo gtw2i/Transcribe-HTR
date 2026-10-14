@@ -3,6 +3,7 @@ import { exportBundle } from '../../api/consistency.js'
 import { useAppStore } from '../../store/appStore.js'
 import { Alert } from '../shared/Alert.jsx'
 import { Button } from '../shared/Button.jsx'
+import { SavedFileNotice } from '../shared/DesktopActions.jsx'
 
 /**
  * Export controls (§26).
@@ -23,18 +24,21 @@ export function ExportControls({ root, selectedIds }) {
   const { normProfile, tokenizer } = useAppStore((s) => s.consistency)
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
+  const [saved, setSaved] = useState(null)
 
   const download = async (section) => {
     setBusy(section)
     setError(null)
+    setSaved(null)
     try {
-      await exportBundle({
+      const result = await exportBundle({
         root,
         attempt_ids: selectedIds,
         normalization_profile: normProfile,
         tokenizer,
         section,
       })
+      setSaved(result)
     } catch {
       setError('The export could not be built.')
     } finally {
@@ -65,6 +69,8 @@ export function ExportControls({ root, selectedIds }) {
           </Button>
         ))}
       </div>
+
+      <SavedFileNotice result={saved} />
 
       {error && (
         <div style={{ marginTop: 'var(--space-2)' }}>

@@ -71,6 +71,10 @@ class TestSingleInstance:
         lock.release()
         assert SingleInstance(tmp_path / "i.lock").running_instance() is None
 
+    def test_publish_creates_a_missing_data_directory(self, tmp_path):
+        SingleInstance(tmp_path / "new" / "i.lock").publish(1, "t")
+        assert (tmp_path / "new" / "i.json").exists()
+
     def test_locks_are_per_user_directory(self, tmp_path):
         alice, bob = SingleInstance(tmp_path / "alice" / "i.lock"), SingleInstance(tmp_path / "bob" / "i.lock")
         assert alice.acquire() and bob.acquire()
