@@ -6,7 +6,7 @@
 
 **Tests:** 698 pass, 1 skipped on Windows (the POSIX-only file-permission test, which runs on macOS/Linux). The baseline before this work was 561. CI covers Linux (Python 3.10–3.12), Windows and macOS 14 (Apple Silicon).
 
-**Progress against the plan:** Phases 0 and 0.5 are done, and Phase 1 is mostly done. That is ahead of the timeline below, which allowed about 7 weeks for this much.
+**Progress against the plan:** Phases 0, 0.5 and 1 are done, apart from the hands-on checks listed under "Still to do". That is ahead of the timeline below, which allowed about 7 weeks for this much.
 
 ### Done
 
@@ -29,15 +29,20 @@
 | 1.5 | `desktop/launcher.py`. Features: in-process server on a random port, loading page, WebView2 check with browser fallback and heartbeat, per-user single instance (second launch focuses the open window), confirm-before-quit during a batch, std-stream redirect, truststore. Check modes: `--smoke-test`, `--self-check`, `--window-check`, `--version` | Verified from source on Windows (real window) |
 | 1.6 | Download bridge: `save_from_api` with an allowlist, a native Save dialog, and streaming through a temp file; both export sites use `utils/download.js` | Bridge logic is unit-tested; the dialog itself is not yet clicked through by hand |
 
+| 1.6 | Desktop-only UI: a "Your data on this computer" card (open the documents and log folders, copy diagnostics) and "Show in folder" after a save. The Print button is hidden. Key-storage wording, plain file input for the dropzone, reload wording | |
+| 1 (CI) | A `desktop` CI job runs the launcher from source on `windows-latest` and `macos-14`: smoke test, self-check and a real native-window check. The window check covers UI rendered and authenticated, desktop UI shown, and the bridge busy flag reaching Python | **macOS verified in CI** (WKWebView, Apple Silicon) |
+
 ### Still to do
 
-**Phase 1 (remaining)**
-- UI for the bridge's helper actions: "Open data folder", "Open logs folder", "Copy diagnostics", and "Show in folder" after a save. The bridge methods exist; there are no buttons yet.
-- Hide the Getting Started **Print** button in desktop mode (`window.print()` does nothing in WKWebView).
-- Replace the "refresh the page" wording in `api/client.js`.
-- Set `useFsAccessApi: false` on the dropzone.
-- Run the launcher from source on macOS: open a real window and click through the Save dialog, the file picker, drag-and-drop, the confirm-before-quit prompt, and a second launch.
-- Exit check: the full workflow with real API keys in the native window on both OSes.
+**Phase 1: hands-on checks (need a person)**
+- **Windows, by hand:**
+  - Click through the native Save dialog and use "Show in folder".
+  - Use the file picker, and drag files from Explorer.
+  - Close during a batch: the confirm prompt should appear.
+  - Launch a second copy: the first window should come to the front.
+  - Tick "Remember my API keys", quit and relaunch: keys and documents should still be there.
+  - Run the full workflow with real API keys.
+- **macOS, by hand:** the same list. Deferred to Phase 4 QA because no Mac is available. CI covers the automated part.
 
 **Phase 2: Packaging (not started)**
 - Real PyInstaller spec, building on the spike's spec, with the permanent bundle ID.

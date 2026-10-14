@@ -44,6 +44,11 @@ Work toward a turnkey Windows/macOS desktop app. See
   - Downloads go through a native Save dialog.
   - Asks before quitting during a batch.
   - Check modes: `--smoke-test`, `--self-check`, `--window-check`.
+  - New in the UI:
+    - A "Your data on this computer" card: open the documents folder, open
+      the log folder, copy diagnostics.
+    - "Show in folder" after saving an export.
+- CI runs the launcher with a real native window on Windows and macOS.
 - **Desktop local-server hardening** (`TRANSCRIBE_HTR_LAUNCH_TOKEN`):
   - Requests need the per-launch token.
   - Foreign `Host` headers are rejected.
