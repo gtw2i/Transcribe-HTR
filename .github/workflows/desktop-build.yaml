@@ -1,0 +1,127 @@
+# Build the desktop installers, install them on a clean runner, and check the
+# installed app (smoke test + real native window), then uninstall.
+# Phase 3 adds a tag-triggered release on top of this.
+name: Desktop build
+
+on:
+  push:
+    branches: ["feature/**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            lock: windows-x64
+          - os: macos-14
+            lock: macos-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      # Signing hooks read these; unset secrets leave the build unsigned.
+      WINDOWS_SIGNING_MODE: ${{ secrets.WINDOWS_SIGNING_MODE }}
+      WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
+      WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_CERT_P12_BASE64: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+      APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Build frontend
+      working-directory: frontend
+      run: npm ci && npm run build
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    # No pip cache: a release build installs exactly the hashed lock.
+    - name: Install pinned build environment
+      run: |
+        python -m pip install --upgrade pip
+        pip install --require-hashes --no-deps -r packaging/locks/${{ matrix.lock }}.txt
+
+    - name: Inno Setup
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+          choco install innosetup --no-progress -y
+        }
+
+    - name: Build app and installer
+      run: python scripts/build_desktop.py --frontend-dist frontend/dist --out build/desktop
+
+    - name: Install and check (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $setup = Get-ChildItem build\desktop\installer\*-setup.exe | Select-Object -First 1
+        $dir = "$env:RUNNER_TEMP\htr-install"
+        $p = Start-Process $setup.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/CURRENTUSER", "/DIR=$dir" -PassThru -Wait
+        if ($p.ExitCode -ne 0) { throw "installer exit $($p.ExitCode)" }
+        $env:TRANSCRIBE_HTR_DATA_DIR = "$env:RUNNER_TEMP\u\data"
+        $env:TRANSCRIBE_HTR_LOG_DIR = "$env:RUNNER_TEMP\u\logs"
+        $env:TRANSCRIBE_HTR_CACHE_DIR = "$env:RUNNER_TEMP\u\cache"
+        $env:TRANSCRIBE_HTR_SECRET_BACKEND = "file"
+        $rc = 0
+        foreach ($mode in "--smoke-test", "--window-check") {
+          $p = Start-Process "$dir\Transcribe-HTR.exe" -ArgumentList $mode -PassThru -Wait
+          $line = Select-String -Path "$env:RUNNER_TEMP\u\logs\launcher.log" -Pattern "^(SMOKE|WINDOWCHECK)" | Select-Object -Last 1
+          Write-Output "::notice title=installed Windows $mode::exit=$($p.ExitCode) $($line.Line)"
+          if ($p.ExitCode -ne 0) { $rc = 1 }
+        }
+        $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES" -PassThru -Wait
+        Start-Sleep -Seconds 3
+        if (Test-Path "$dir\Transcribe-HTR.exe") { Write-Output "::error::uninstall left the app behind"; $rc = 1 }
+        if (-not (Test-Path "$env:RUNNER_TEMP\u\data")) { Write-Output "::error::uninstall removed user data"; $rc = 1 }
+        exit $rc
+
+    - name: Install and check (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        dmg=$(ls build/desktop/installer/*.dmg | head -1)
+        mnt=$(mktemp -d)
+        hdiutil attach "$dmg" -nobrowse -mountpoint "$mnt"
+        mkdir -p "$HOME/Applications"
+        ditto "$mnt/Transcribe-HTR.app" "$HOME/Applications/Transcribe-HTR.app"
+        hdiutil detach "$mnt"
+        codesign --verify --deep --strict "$HOME/Applications/Transcribe-HTR.app"
+        bin="$HOME/Applications/Transcribe-HTR.app/Contents/MacOS/Transcribe-HTR"
+        export TRANSCRIBE_HTR_DATA_DIR="$RUNNER_TEMP/u/data" TRANSCRIBE_HTR_LOG_DIR="$RUNNER_TEMP/u/logs"
+        export TRANSCRIBE_HTR_CACHE_DIR="$RUNNER_TEMP/u/cache" TRANSCRIBE_HTR_SECRET_BACKEND=file
+        rc=0
+        for mode in --smoke-test --window-check; do
+          out=$("$bin" $mode 2>&1) || rc=1
+          echo "::notice title=installed macOS $mode::$(echo "$out" | grep -E '^(SMOKE|WINDOWCHECK)' | tail -1)"
+        done
+        exit $rc
+
+    - name: Sizes
+      shell: bash
+      run: |
+        ls -la build/desktop/installer/
+        echo "::notice title=installer ${{ runner.os }}::$(ls -la build/desktop/installer/ | grep -E 'setup.exe|\.dmg' | awk '{print $5, $9}')"
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Transcribe-HTR-${{ matrix.lock }}
+        path: |
+          build/desktop/installer/*-setup.exe
+          build/desktop/installer/*.dmg
+          build/desktop/installer/SHA256SUMS.txt
+        retention-days: 14
