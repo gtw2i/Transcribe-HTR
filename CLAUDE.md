@@ -28,7 +28,9 @@ The launcher (`desktop/launcher.py`) runs uvicorn in-process on a random
 127.0.0.1 port and sets `TRANSCRIBE_HTR_PERSISTENT_WORKSPACE` and a per-launch
 `TRANSCRIBE_HTR_LAUNCH_TOKEN` before importing `main`. `desktop/bridge.py` is
 the `window.pywebview.api` surface (downloads, open folder, diagnostics).
-Plan and status: `docs/development/DESKTOP_PLAN.md`.
+Plan and status: `docs/development/DESKTOP_PLAN.md`. Building installers,
+dependency locks, signing and permanent IDs: `docs/development/DESKTOP.md`
+(`python scripts/build_desktop.py --out <dir outside OneDrive>`).
 
 **Frontend** (React/Vite, port 5173):
 ```bash

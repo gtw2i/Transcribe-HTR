@@ -1,12 +1,21 @@
 # Transcribe-HTR Desktop: turnkey Windows + macOS app
 
-## Status (updated 2026-10-13)
+## Status (updated 2026-10-14)
 
-**Branch:** `feature/desktop-app`, with work-in-progress commits pushed to GitHub. The throwaway spike is on `desktop/spike-packaging`, which is never merged.
+**Branch:** `feature/desktop-app`, with all work pushed to GitHub. The throwaway spike is on `desktop/spike-packaging`, which is never merged.
 
-**Tests:** 698 pass, 1 skipped on Windows (the POSIX-only file-permission test, which runs on macOS/Linux). The baseline before this work was 561. CI covers Linux (Python 3.10–3.12), Windows and macOS 14 (Apple Silicon).
+**Tests:** 699 pass, 1 skipped on Windows (the POSIX-only file-permission test, which runs on macOS/Linux). The baseline before this work was 561.
 
-**Progress against the plan:** Phases 0, 0.5 and 1 are done, apart from the hands-on checks listed under "Still to do". That is ahead of the timeline below, which allowed about 7 weeks for this much.
+**CI:**
+- `ci.yaml` runs the test suite on Linux (Python 3.10–3.12), Windows and macOS 14 (Apple Silicon).
+- Its `desktop` job runs the launcher from source with a real window.
+- `desktop-build.yaml` builds both installers, installs each one on a clean runner, checks the installed app, and uninstalls it.
+
+**Progress against the plan:**
+- Phases 0, 0.5 and 1 are complete.
+- Phase 2 is complete except for wiring the Azure signing variables into the workflow, which waits on an account.
+- The timeline below allowed about 9 weeks for this much.
+- **The open blocker is code signing on Windows.** See "Smart App Control finding" below.
 
 ### Done
 
@@ -21,60 +30,67 @@
 | 0 | TIFF uploads work; 16-bit scans and EXIF rotation handled; HEIC dropped (licensing open item) | |
 | 0 | `cleanup_session` can no longer delete outside its own session | |
 | 0 | `.env` loaded in development; `VERSION` + `CHANGELOG.md` + version consistency test; stale docs fixed | |
-| 0.5 | Packaging spike: PyInstaller + pywebview frozen builds pass smoke, self-check and window checks on Windows and macOS | **G1 = GO.** Results are in the Phase 0.5 section below |
+| 0.5 | Packaging spike: PyInstaller + pywebview frozen builds pass the smoke test, self-check and window check on Windows and macOS | **G1 = GO.** Results are in the Phase 0.5 section below |
 | 1.1 | Persistent single-user workspace that survives restarts and rescans the folder on load | |
 | 1.2 | Atomic writes (documents, uploads, profiles); uploads never overwrite; "Remove document" moves files to a trash folder | |
 | 1.3 | Local-server hardening: per-launch token, auth cookie, Host allowlist, docs and CORS off in desktop mode | |
 | 1.4 | Remembered API keys: `SecretStore` (Credential Manager, or an owner-only file), `/api/settings/keys` (desktop only), "Remember my API keys" option | |
-| 1.5 | `desktop/launcher.py`. Features: in-process server on a random port, loading page, WebView2 check with browser fallback and heartbeat, per-user single instance (second launch focuses the open window), confirm-before-quit during a batch, std-stream redirect, truststore. Check modes: `--smoke-test`, `--self-check`, `--window-check`, `--version` | Verified from source on Windows (real window) |
-| 1.6 | Download bridge: `save_from_api` with an allowlist, a native Save dialog, and streaming through a temp file; both export sites use `utils/download.js` | Bridge logic is unit-tested; the dialog itself is not yet clicked through by hand |
+| 1.5 | `desktop/launcher.py`. Features: in-process server on a random port, loading page, WebView2 check with browser fallback and heartbeat, per-user single instance (second launch focuses the open window), confirm-before-quit during a batch, std-stream redirect, truststore. Modes: `--smoke-test`, `--self-check`, `--window-check`, `--version`, `--forget-keys` | |
+| 1.6 | Download bridge: `save_from_api` with an allowlist, native Save dialog, temp-file streaming; both export sites use `utils/download.js` | |
+| 1.6 | Desktop-only UI: "Your data on this computer" card (open the documents and log folders, copy or hide diagnostics); "Show in folder" after a save; Print hidden; wording fixes; plain file input for the dropzone | |
+| 1 (CI) | `desktop` job in `ci.yaml`: the launcher from source on `windows-latest` and `macos-14`, with a real native-window check | **macOS verified in CI** (WKWebView, Apple Silicon) |
+| 1 (manual) | Windows hands-on check by the PI (2026-10-14): upload, remembered keys, full Gemini workflow, all exports through the Save dialog, quit prompt during a batch, persistence across restarts, data card | ✅ All passed. One fix followed (diagnostics box could not be hidden) |
+| 2 | **Decided:** bundle ID `org.transcribe-htr.app` (neutral, because the project spans several institutions). Windows installer AppId `{3B228E44-1F43-4EFF-8DB4-CF0BA7179BD1}`. Both permanent | |
+| 2 | Placeholder app icons: `packaging/icons/make_icons.py` → `icon.png`, `app.ico`, `app.icns` | Replace `icon.png` with designed artwork later |
+| 2 | Hashed per-platform dependency locks (`packaging/locks/windows-x64.txt`, `macos-arm64.txt`) generated with `uv` by `scripts/lock_desktop.py` | Reproducible release builds |
+| 2 | `packaging/pyinstaller/transcribe_htr.spec`. Includes: launcher entry, icons, Windows version resource, macOS `Info.plist` (version, minimum macOS 11, local networking), bundled `build_info.json` (version, commit, signed flag, build-time env defaults) | |
+| 2 | Windows Inno Setup installer (`packaging/windows/installer.iss`) | Per-user by default; all-users on request or `/ALLUSERS` for IT; WebView2 bootstrapper when missing; uninstall keeps user data unless the current user opts to delete theirs (files plus remembered keys); other accounts untouched |
+| 2 | macOS `.dmg` with an Applications link (`hdiutil`) | |
+| 2 | Signing hooks: `packaging/sign/sign_windows.ps1` (pfx or Azure Artifact Signing; signs every `.exe`, `.dll` and `.pyd`) and `sign_macos.sh` (Developer ID, hardened runtime, notarize, staple) plus `entitlements.plist` | Do nothing until secrets are set; adding secrets turns signing on |
+| 2 | `scripts/build_desktop.py`: one command for frontend → build info → PyInstaller → sign → frozen checks → installer → sign → `SHA256SUMS.txt` | |
+| 2 (CI) | `desktop-build.yaml`: builds from the locks, installs on a clean runner, runs `--smoke-test` and `--window-check` on the **installed** app, uninstalls, and checks that user data survived; installers kept as artifacts for 14 days | ✅ Windows 51 MB `.exe`, macOS 60 MB `.dmg`, all checks pass |
+| 2 (docs) | `docs/development/DESKTOP.md`: developer guide (run, build, locks, signing, permanent IDs, icons) | |
 
-| 1.6 | Desktop-only UI: a "Your data on this computer" card (open the documents and log folders, copy diagnostics) and "Show in folder" after a save. The Print button is hidden. Key-storage wording, plain file input for the dropzone, reload wording | |
-| 1 (CI) | A `desktop` CI job runs the launcher from source on `windows-latest` and `macos-14`: smoke test, self-check and a real native-window check. The window check covers UI rendered and authenticated, desktop UI shown, and the bridge busy flag reaching Python | **macOS verified in CI** (WKWebView, Apple Silicon) |
+### Smart App Control finding (2026-10-14)
+
+- The PI's own Windows 11 PC has **Smart App Control enforcing** (`VerifiedAndReputablePolicyState = 1`).
+- It blocked the new unsigned local build with "An Application Control policy has blocked this file" (Code Integrity events 3033/3077). The day before, the unsigned spike build had been allowed.
+- Unsigned binaries are judged by cloud reputation and heuristics, so whether any given build runs is unpredictable. With Smart App Control on, the user has no "Run anyway" option.
+- This confirms the main risk in "Unsigned builds" below. For Windows 11 users, **an unsigned installer cannot be relied on to run at all.**
+- Until builds are signed, test unsigned builds in CI or on machines without Smart App Control.
 
 ### Still to do
 
-**Phase 1: hands-on checks**
-- **Windows, done by hand on 2026-10-14:**
+**Decision now needed: Windows code signing (G2, brought forward)**
+- Options, from the table under "Unsigned builds":
+  - **SignPath Foundation:** free for open-source projects, and Transcribe-HTR is BSD-licensed. Requires their CI integration and an application review.
+  - **Azure Artifact Signing:** about $10 a month; eligibility rules apply.
+  - **An institutional certificate:** a participating university may already hold one.
+- Once credentials exist, the remaining code work is small: map the Azure (or SignPath) secrets in `desktop-build.yaml`. The scripts already support pfx and Azure.
+- macOS signing (Apple Developer, $99 a year) is still recommended before the beta.
 
-  | Check | Result |
-  |---|---|
-  | Document upload | ✅ |
-  | API key entry and remembering | ✅ |
-  | Full workflow with real keys (Gemini) | ✅ |
-  | All exports through the native Save dialog | ✅ |
-  | Confirm prompt when quitting during a batch | ✅ |
-  | Documents persist across restarts | ✅ |
-  | Data card | ✅ |
-
-  - The diagnostics box could not be closed; it now has a "Hide diagnostics" button.
-- **Windows, not yet checked:** a TIFF upload (covered by automated tests) and launching a second copy (covered by the single-instance tests, but not yet watched by hand).
-- **macOS, by hand:** the same list. Deferred to Phase 4 QA because no Mac is available. The CI `desktop` job covers the automated part.
-
-**Phase 2: Packaging (not started)**
-- Real PyInstaller spec, building on the spike's spec, with the permanent bundle ID.
-- Windows Inno Setup installer: per-user and all-users modes, WebView2 bootstrapper, uninstaller that keeps user data.
-- macOS `.dmg`; app icons; pinned per-platform lock files; `scripts/build_desktop.py`.
-- Signing hooks that do nothing until credentials are configured.
+**Phase 1/2: hands-on checks still open**
+- Windows: a TIFF upload, and launching a second copy (both covered by automated tests). Also run the installer by hand: per-user install, Start-menu shortcut, uninstall prompt. This needs signing first, or a machine without Smart App Control.
+- macOS: the whole hands-on list. Deferred to Phase 4 because no Mac is available. CI covers the automated part, including the installed `.app`.
 
 **Phase 3: Release pipeline (not started)**
-- Tag-triggered `release.yaml`: version check, builds, frozen smoke test, window check, checksums, provenance attestations, draft GitHub Release.
-- Update notice in the app.
-- Bump the GitHub Actions versions (Node 20 deprecation).
+- Tag-triggered release: check the tag matches `VERSION`, reuse the desktop build, attach the installers and `SHA256SUMS.txt` to a draft GitHub Release, add build-provenance attestations.
+- Update notice in the app (checks GitHub Releases; can be switched off).
+- Bump the GitHub Actions versions (Node 20 deprecation warnings).
+- Delete `desktop/spike-packaging` and its workflow.
 
 **Phase 4: QA, documentation, beta (not started)**
-- Clean-VM QA matrix, including a standard account, two users at once, and Smart App Control.
-- Install guides with screenshots (unsigned first-run steps).
-- `docs/development/DESKTOP.md`; README install section; beta with digital-humanities users.
+- Clean-VM QA matrix, including a standard account, two users at once, and Smart App Control on and off.
+- Install guides with screenshots for end users, including the first-run steps while builds are unsigned.
+- README install section; beta with digital-humanities users.
 
 ### Decisions and open items
 
-- **Decided (2026-10-14): bundle identifier `org.transcribe-htr.app`.** It is neutral rather than tied to one institution, because this is a multi-institutional project. It is permanent: changing it later would break updates and remembered keys on macOS. The Windows installer's AppId GUID is likewise fixed in `packaging/windows/installer.iss`.
-- **App icon:** a generated placeholder (`packaging/icons/make_icons.py`) until someone designs real artwork.
-- **G2, code signing (decide by mid-December):** the recommendation is an Apple Developer membership before the beta, and a Windows signing decision based on what beta users run. See "Unsigned builds" below.
+- **Decided (2026-10-14): bundle ID `org.transcribe-htr.app`** (neutral; multi-institutional project). Permanent: changing it would break updates and remembered keys on macOS. The installer AppId GUID is likewise permanent.
+- **App icon:** a generated placeholder until someone designs real artwork.
+- **G2, code signing:** Windows is now urgent (see the finding above); macOS is still recommended before the beta.
 - **HEIC support:** `pillow-heif` bundles LGPL/GPL codecs, so a licensing review is needed before adding it.
 - **Import of exports or project folders:** deferred. Today, files dropped into the workspace folder appear in the app.
-- **Delete `desktop/spike-packaging`** once Phase 3's release workflow replaces it.
 
 ## Context
 

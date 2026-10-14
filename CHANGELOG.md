@@ -49,6 +49,14 @@ Work toward a turnkey Windows/macOS desktop app. See
       the log folder, copy diagnostics.
     - "Show in folder" after saving an export.
 - CI runs the launcher with a real native window on Windows and macOS.
+- **Desktop installers:**
+  - Windows: Inno Setup `.exe` (per-user or all-users, WebView2 bootstrapper, uninstall keeps user data unless you choose otherwise).
+  - macOS: Apple Silicon `.dmg`.
+  - Built by `scripts/build_desktop.py` from hashed per-platform dependency locks.
+  - CI installs each one on a clean machine and checks the installed app.
+- Signing hooks for Windows and macOS, off until credentials are configured.
+- Placeholder app icons. Permanent identifiers: bundle ID `org.transcribe-htr.app` and installer AppId.
+- `docs/development/DESKTOP.md` developer guide.
 - **Desktop local-server hardening** (`TRANSCRIBE_HTR_LAUNCH_TOKEN`):
   - Requests need the per-launch token.
   - Foreign `Host` headers are rejected.
