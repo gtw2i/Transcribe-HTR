@@ -1,0 +1,6 @@
+# Everything the desktop build needs: runtime + desktop shell + the freezer.
+# Compiled into the per-platform locks in packaging/locks/ by
+# scripts/lock_desktop.py; release builds install ONLY from those locks.
+-r ../backend/requirements.txt
+-r ../desktop/requirements.txt
+pyinstaller>=6.22,<7
