@@ -1,13 +1,16 @@
 """File listing and image retrieval."""
 
 import base64
+import io
 import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
+from atomic_io import atomic_write_bytes
 from core.file_manager import get_root_status_tag, get_sorted_roots
 from core.json_manager import get_json_summary, load_v2_json
 from dependencies import get_file_index, get_workspace
@@ -56,6 +59,43 @@ def remove_document(root: str, workspace=Depends(get_workspace), file_index=Depe
             moved.append(path.name)
     del file_index.records[root]
     return {"root": root, "moved": sorted(moved), "trash": str(trash) if moved else None}
+
+
+class RotateRequest(BaseModel):
+    degrees: int  # clockwise; a multiple of 90
+
+
+@router.post("/files/{root}/rotate")
+def rotate_image(root: str, req: RotateRequest, file_index=Depends(get_file_index)):
+    """Permanently rotate a document's stored page image (clockwise).
+
+    For pages that were scanned or photographed sideways: the stored copy is
+    what thumbnails show and what future transcriptions send to the AI. Only
+    the workspace copy changes, never the user's original file, and existing
+    transcriptions are left as they are. Quarter turns are exact pixel
+    transposes, so no quality is lost.
+    """
+    from PIL import Image
+
+    turns = {90: Image.Transpose.ROTATE_270, 180: Image.Transpose.ROTATE_180, 270: Image.Transpose.ROTATE_90}
+    degrees = req.degrees % 360
+    if req.degrees % 90 != 0 or degrees == 0:
+        raise HTTPException(status_code=400, detail="Rotation must be 90, 180 or 270 degrees.")
+    if root not in file_index.records or not file_index.records[root].has_image():
+        raise HTTPException(status_code=404, detail=f"No image for root '{root}'.")
+
+    path = Path(file_index.records[root].image_path)
+    with Image.open(path) as im:
+        im.load()
+        fmt = im.format or "PNG"
+        rotated = im.transpose(turns[degrees])
+    buf = io.BytesIO()
+    if fmt == "JPEG":
+        rotated.save(buf, format="JPEG", quality=95)
+    else:
+        rotated.save(buf, format=fmt)
+    atomic_write_bytes(path, buf.getvalue())
+    return {"root": root, "degrees": degrees, "width": rotated.width, "height": rotated.height}
 
 
 @router.get("/files/{root}/image")

@@ -511,6 +511,80 @@ select.form-control {
   display: block;
 }
 
+/* ── Image viewer (Analysis tab): rotate / zoom / pan ── */
+.image-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.image-viewer__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
+
+.image-viewer__sep {
+  width: 1px;
+  height: 18px;
+  background: var(--color-border);
+  margin: 0 var(--space-1);
+}
+
+.image-viewer__zoom {
+  min-width: 48px;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.image-viewer__frame {
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
+  background: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.image-viewer__frame:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.image-viewer__frame.is-dragging {
+  cursor: grabbing;
+}
+
+.image-viewer__frame img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: none;
+  transform-origin: center center;
+  transition: transform 120ms ease-out;
+  pointer-events: none;
+}
+
+.image-viewer__frame.is-dragging img {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-viewer__frame img { transition: none; }
+}
+
+.image-viewer__hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
 .image-preview-empty {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);

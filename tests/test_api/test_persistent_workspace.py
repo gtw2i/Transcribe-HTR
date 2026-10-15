@@ -140,6 +140,45 @@ class TestRemoveDocument:
         assert client.delete("/api/files/nope").status_code == 404
 
 
+class TestRotateImage:
+    @staticmethod
+    def _upload_landscape(client):
+        buf = io.BytesIO()
+        img = Image.new("RGB", (40, 20), "white")
+        img.putpixel((0, 0), (255, 0, 0))  # red marker in the top-left corner
+        img.save(buf, format="PNG")
+        client.post("/api/upload", files=[("files", ("page.png", buf.getvalue()))])
+
+    def _stored(self, persistent):
+        return Image.open(persistent / "workspace" / "page.png")
+
+    def test_quarter_turn_clockwise(self, persistent):
+        client = _client()
+        client.post("/api/session/init")
+        self._upload_landscape(client)
+
+        body = client.post("/api/files/page/rotate", json={"degrees": 90}).json()
+
+        assert (body["width"], body["height"]) == (20, 40)
+        im = self._stored(persistent).convert("RGB")
+        assert im.size == (20, 40)
+        # Clockwise: the top-left corner moves to the top-right.
+        assert im.getpixel((19, 0)) == (255, 0, 0)
+
+    def test_negative_and_full_turns(self, persistent):
+        client = _client()
+        client.post("/api/session/init")
+        self._upload_landscape(client)
+        assert client.post("/api/files/page/rotate", json={"degrees": -90}).json()["degrees"] == 270
+        assert client.post("/api/files/page/rotate", json={"degrees": 360}).status_code == 400
+        assert client.post("/api/files/page/rotate", json={"degrees": 45}).status_code == 400
+
+    def test_unknown_document(self, persistent):
+        client = _client()
+        client.post("/api/session/init")
+        assert client.post("/api/files/nope/rotate", json={"degrees": 90}).status_code == 404
+
+
 class TestWebModeUnchanged:
     def test_each_init_is_a_new_temp_session(self, data_dir, monkeypatch):
         monkeypatch.delenv("TRANSCRIBE_HTR_PERSISTENT_WORKSPACE", raising=False)

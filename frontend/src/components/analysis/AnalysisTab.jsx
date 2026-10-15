@@ -10,6 +10,7 @@ import { Spinner } from '../shared/Spinner.jsx'
 import { Alert } from '../shared/Alert.jsx'
 import { FallbackNotice } from '../shared/FallbackNotice.jsx'
 import { Expander } from '../shared/Expander.jsx'
+import { ImageViewer } from '../shared/ImageViewer.jsx'
 
 const COLOR_MODES = ['Word-level', 'Char-level', 'Named Entities']
 
@@ -101,23 +102,21 @@ function AnalysisControls({ colorReason }) {
   )
 }
 
+// Same height as the transcription panel, so the page and its text sit side by side.
+const PANEL_HEIGHT = 'calc(100vh - var(--header-height) - var(--tab-bar-height) - 2 * var(--space-3) - var(--space-6) - 56px)'
+
 function ImagePanel({ root }) {
   const { data, isLoading } = useImage(root)
 
+  if (isLoading) return <div className="image-preview"><Spinner label="Loading image…" /></div>
+  if (!data?.image_b64) return <div className="image-preview"><div className="image-preview-empty">No image loaded</div></div>
   return (
-    <div className="image-preview">
-      {isLoading ? (
-        <Spinner label="Loading image…" />
-      ) : data?.image_b64 ? (
-        <img
-          src={`data:${data.mime || 'image/png'};base64,${data.image_b64}`}
-          alt={root}
-          style={{ maxHeight: 'calc(100vh - var(--header-height) - var(--tab-bar-height) - 2 * var(--space-3) - var(--space-6))', maxWidth: '100%', width: 'auto', display: 'block' }}
-        />
-      ) : (
-        <div className="image-preview-empty">No image loaded</div>
-      )}
-    </div>
+    <ImageViewer
+      key={root}
+      root={root}
+      src={`data:${data.mime || 'image/png'};base64,${data.image_b64}`}
+      height={PANEL_HEIGHT}
+    />
   )
 }
 
@@ -280,7 +279,7 @@ export function AnalysisTab() {
       }}>
 
         {/* Image column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', minWidth: 0 }}>
           <div className="section-title" style={{ marginBottom: 0 }}>Image</div>
           <ImagePanel root={activeRoot} />
         </div>

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+export const DEFAULT_IMAGE_VIEW = { rotation: 0, zoom: 1, panX: 0, panY: 0 }
+
 export const useAppStore = create((set, get) => ({
   // ── Session ──
   sessionId: null,
@@ -27,6 +29,18 @@ export const useAppStore = create((set, get) => ({
     geminiApiKey: keys.gemini || '',
     anthropicApiKey: keys.anthropic || '',
     storedKeysLoaded: true,
+  }),
+
+  // ── Image viewer (Analysis tab), per document ──
+  // { [root]: { rotation, zoom, panX, panY } }; zoom is relative to "fit".
+  imageViews: {},
+  updateImageView: (root, fn) => set((state) => ({
+    imageViews: { ...state.imageViews, [root]: fn(state.imageViews[root] ?? DEFAULT_IMAGE_VIEW) },
+  })),
+  resetImageView: (root) => set((state) => {
+    const imageViews = { ...state.imageViews }
+    delete imageViews[root]
+    return { imageViews }
   }),
 
   // ── Navigation ──

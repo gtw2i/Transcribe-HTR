@@ -62,6 +62,15 @@ Work toward a turnkey Windows/macOS desktop app. See
   - Foreign `Host` headers are rejected.
   - API docs and the dev CORS origins are turned off.
 
+- **Image viewer on the Analysis tab** for comparing a page with its transcription:
+  - Rotate left or right.
+  - Zoom with buttons, the mouse wheel (toward the cursor) or a double-click.
+  - Drag to move the page.
+  - Fit, Width and 100% views, plus Reset.
+  - Keyboard shortcuts: arrows, +/−, R, 0.
+  - The view is remembered per document.
+  - **Save rotation** permanently turns the stored page upright (`POST /api/files/{root}/rotate`), so thumbnails and future transcriptions use it. Original files and existing transcriptions are untouched.
+
 ### Changed
 - **Logs** moved from `./logs` (relative to wherever the server started) to the
   per-user log directory:

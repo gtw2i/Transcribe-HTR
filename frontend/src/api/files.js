@@ -20,6 +20,12 @@ export async function getSummary(root) {
   return res.data
 }
 
+// Permanently rotates the stored page image clockwise (90, 180 or 270).
+export async function rotateImage(root, degrees) {
+  const res = await api.post(`/files/${encodeURIComponent(root)}/rotate`, { degrees })
+  return res.data
+}
+
 // Moves the document's files into the workspace trash folder (not deleted).
 export async function removeDocument(root) {
   const res = await api.delete(`/files/${encodeURIComponent(root)}`)
