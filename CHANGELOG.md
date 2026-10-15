@@ -92,6 +92,7 @@ Work toward a turnkey Windows/macOS desktop app. See
 - `backend/run.py` loads `<repo>/.env` when it exists.
 
 ### Fixed
+- After a restart, or on switching documents, the Analysis tab offered only one transcription per page. Each transcription in a batch is saved as its own run, but only the last run was restored. All saved transcriptions are now restored, in the same order the Consistency tab uses.
 - Saving a profile from the UI always failed with HTTP 422 (payload shape
   mismatch).
 - "Named Entities" colorization crashed on matplotlib 3.9+ (`cm.get_cmap`

@@ -11,6 +11,7 @@ import { Alert } from '../shared/Alert.jsx'
 import { FallbackNotice } from '../shared/FallbackNotice.jsx'
 import { Expander } from '../shared/Expander.jsx'
 import { ImageViewer } from '../shared/ImageViewer.jsx'
+import { outputsFromSavedRuns } from '../../utils/savedRuns.js'
 
 const COLOR_MODES = ['Word-level', 'Char-level', 'Named Entities']
 
@@ -227,22 +228,9 @@ export function AnalysisTab() {
 
   useEffect(() => {
     if (!jsonData || outputs.length > 0) return
-    const runs = jsonData.runs || []
-    if (runs.length === 0) return
-    const lastRun = runs[runs.length - 1]
-    const texts = (lastRun.outputs || []).map((o) => (typeof o === 'string' ? o : o.text || ''))
+    const { texts, tokens } = outputsFromSavedRuns(jsonData)
     if (texts.length === 0) return
-    setTranscriptionResults(
-      texts,
-      {
-        prompt_tokens: lastRun.tokens_in || 0,
-        completion_tokens: lastRun.tokens_out || 0,
-        estimated_cost_usd: lastRun.estimated_cost_usd ?? null,
-        model: lastRun.model || '',
-        provider: lastRun.provider || '',
-      },
-      null,
-    )
+    setTranscriptionResults(texts, tokens, null)
   }, [jsonData, outputs.length, setTranscriptionResults])
 
   useEffect(() => {
