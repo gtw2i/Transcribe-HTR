@@ -241,12 +241,32 @@ python -m pytest --cov=backend --cov-report=html
 
 If you use this software in a publication, presentation, or project, please cite:
 
-> G. West, J. F. Wallin, A. Fialka, M. I. Swindall, J. Dyson, R. Sherridan, and J. H. Brusuelas.
-> (2025). "An Application for LLM-Powered Document Transcription with Interactive Tools for Textual
-> Analysis." *Past Meets Future 2025 Workshop.*
+> Graham West, John Wallin, James Brusuelas, and Andrew Fialka. 2026. Transcribe-HTR: An Auditable,
+> LLM-Based Historical Document Intelligence Platform. In *JCDL '26: Proceedings of the 26th ACM/IEEE
+> Joint Conference on Digital Libraries*, Article 141, 1–4. https://doi.org/10.1145/3805696.3848486
+
+```bibtex
+@inproceedings{west2026transcribehtr,
+  author    = {West, Graham and Wallin, John and Brusuelas, James and Fialka, Andrew},
+  title     = {Transcribe-HTR: An Auditable, LLM-Based Historical Document Intelligence Platform},
+  booktitle = {JCDL '26: Proceedings of the 26th ACM/IEEE Joint Conference on Digital Libraries},
+  year      = {2026},
+  articleno = {141},
+  pages     = {1--4},
+  numpages  = {4},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3805696.3848486},
+  url       = {https://doi.org/10.1145/3805696.3848486}
+}
+```
 
 Machine-readable metadata is in [CITATION.cff](CITATION.cff); GitHub's "Cite this repository"
-button will generate BibTeX or APA from it.
+button will generate BibTeX or APA from it. Every JSON, TXT and DOCX export from the app also
+carries this citation.
+
+Earlier work: G. West, J. F. Wallin, A. Fialka, M. I. Swindall, J. Dyson, R. Sherridan, and
+J. H. Brusuelas. (2025). "An Application for LLM-Powered Document Transcription with Interactive
+Tools for Textual Analysis." *Past Meets Future 2025 Workshop.*
 
 ---
 

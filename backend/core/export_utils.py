@@ -14,6 +14,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, RGBColor
 
+from app_citation import CITATION
 from app_paths import tts_cache_dir as default_tts_cache_dir
 from config import TEMPLATES_DIR
 from logging_config import log_warning
@@ -44,7 +45,9 @@ def build_v2_download_schema(v2_json: Dict[str, Any]) -> Dict[str, Any]:
     metadata = {
         "image_filename": src_meta.get("image_filename"),
         "created_at": src_meta.get("created_at"),
-        "citation": src_meta.get("citation"),
+        # Always the current citation: documents created before the paper was
+        # published still carry the old one in their stored metadata.
+        "citation": CITATION,
         "license": src_meta.get("license"),
         "app_version": src_meta.get("app_version"),
     }

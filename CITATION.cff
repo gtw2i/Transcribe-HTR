@@ -34,8 +34,19 @@ preferred-citation:
     - family-names: Wallin
       given-names: John
     - family-names: Brusuelas
-      given-names: James H.
+      given-names: James
     - family-names: Fialka
       given-names: Andrew
-  collection-title: "Proceedings of the 2026 ACM/IEEE Joint Conference on Digital Libraries"
+  collection-title: "JCDL '26: Proceedings of the 26th ACM/IEEE Joint Conference on Digital Libraries"
+  conference:
+    name: "26th ACM/IEEE Joint Conference on Digital Libraries (JCDL '26)"
+  publisher:
+    name: "Association for Computing Machinery"
+  doi: "10.1145/3805696.3848486"
+  url: "https://doi.org/10.1145/3805696.3848486"
+  start: 1
+  end: 4
+  notes: "Article No. 141"
   year: 2026
+  month: 10
+  date-published: 2026-10-13

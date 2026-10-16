@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from app_citation import CITATION
 from atomic_io import atomic_write_bytes
 from logging_config import log_error, log_info, log_warning
 
@@ -40,11 +41,7 @@ def create_v2_json_schema(
             "image_filename": image_filename,
             "created_at": now_utc,
             "updated_at": now_utc,
-            "citation": (
-                "West, G. & Wallin, J. (2026). Transcribe-HTR: "
-                "An AI-powered tool for historical manuscript transcription "
-                "and analysis [Software]."
-            ),
+            "citation": CITATION,
             "license": "BSD-2-Clause",
         },
         "runs": [],

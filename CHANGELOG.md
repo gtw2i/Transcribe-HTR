@@ -72,6 +72,9 @@ Work toward a turnkey Windows/macOS desktop app. See
   - **Save rotation** permanently turns the stored page upright (`POST /api/files/{root}/rotate`), so thumbnails and future transcriptions use it. Original files and existing transcriptions are untouched.
 
 ### Changed
+- **Citation:** the preferred citation is now the JCDL '26 paper, "Transcribe-HTR: An Auditable, LLM-Based Historical Document Intelligence Platform" (West, Wallin, Brusuelas, Fialka; Article 141; https://doi.org/10.1145/3805696.3848486).
+  - Updated in `CITATION.cff`, the README (with BibTeX) and the app.
+  - The app's single copy is in `backend/core/app_citation.py`. Every JSON, TXT and DOCX export now carries the current citation, including exports of documents created earlier.
 - **Logs** moved from `./logs` (relative to wherever the server started) to the
   per-user log directory:
   - Windows: `%LOCALAPPDATA%\Transcribe-HTR\Logs`
